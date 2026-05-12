@@ -1,5 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
-import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import pdfjsWorkerUrl from './pdfjsWorkerWrapper.js?worker&url';
 import { dedupeImportedAccounts } from './importMerge.js';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
