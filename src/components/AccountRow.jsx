@@ -3,19 +3,24 @@ import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
 import { fmtINR, fmtDate } from '../lib/format.js';
 import { Icon } from '../icons/Icon.jsx';
 
-function getContext(account) {
+function getContext(account, statement) {
   const { type } = account;
 
   if (type === 'creditCard') {
-    if (account.dueDate) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const due = new Date(account.dueDate);
-      const days = Math.ceil((due - today) / 86400000);
-      const label = days < 0 ? 'Overdue' : days === 0 ? 'Due today' : `Due ${fmtDate(account.dueDate)}`;
+    // Prefer statement dueDate (raw string), fall back to account ISO dueDate
+    const stmtDueDate  = statement?.summary?.dueDate || '';
+    const acctDueDate  = account.dueDate || '';
+    const dueDateLabel = stmtDueDate || (acctDueDate ? fmtDate(acctDueDate) : '');
+
+    if (acctDueDate) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const due   = new Date(acctDueDate);
+      const days  = Math.ceil((due - today) / 86400000);
+      const label = days < 0 ? 'Overdue' : days === 0 ? 'Due today' : dueDateLabel ? `Due ${dueDateLabel}` : '';
       const color = days < 0 || days === 0 ? 'var(--negative)' : days <= 5 ? 'var(--amber)' : 'var(--text-faint)';
-      return { label, color };
+      if (label) return { label, color };
     }
+    if (dueDateLabel) return { label: `Due ${dueDateLabel}`, color: 'var(--text-faint)' };
     if (account.limit) return { label: `Limit ${fmtINR(account.limit, { compact: true })}`, color: 'var(--text-faint)' };
     return null;
   }
@@ -75,10 +80,15 @@ function getContext(account) {
   return null;
 }
 
-export default function AccountRow({ account, onClick, compact = false }) {
+export default function AccountRow({ account, onClick, compact = false, statement }) {
   const meta = ACCOUNT_TYPES[account.type] || {};
   const isLiab = meta.kind === 'liability';
-  const ctx = getContext(account);
+  const ctx = getContext(account, statement);
+
+  // For CC: a.balance is authoritative when set (0=paid). Fall back to statement totalDue only when unset.
+  const displayBalance = account.type === 'creditCard'
+    ? (account.balance != null && account.balance !== '' ? account.balance : (statement?.summary?.totalDue ?? account.balance))
+    : account.balance;
 
   const subParts = [
     meta.label,
@@ -116,7 +126,7 @@ export default function AccountRow({ account, onClick, compact = false }) {
           style={{ color: isLiab ? 'var(--negative)' : 'var(--text)' }}
         >
           {isLiab ? '−' : ''}
-          {fmtINR(account.balance, { compact: true }).replace('−', '')}
+          {fmtINR(displayBalance, { compact: true }).replace('−', '')}
         </div>
         {!compact && (
           <div className="row-date">

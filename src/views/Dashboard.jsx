@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
 import { fmtINR, fmtDate } from '../lib/format.js';
+import { loadStatements } from '../lib/statementStore.js';
 import EmptyState from '../components/EmptyState.jsx';
 import StatCard from '../components/StatCard.jsx';
 import SectionHeader from '../components/SectionHeader.jsx';
@@ -10,13 +11,24 @@ import AccountRow from '../components/AccountRow.jsx';
 export default function Dashboard({ totals, accounts, onAdd, onEdit, onImport }) {
   if (accounts.length === 0) return <EmptyState onAdd={onAdd} />;
 
+  const stmtByAccount = useMemo(() => {
+    const map = {};
+    for (const s of loadStatements()) {
+      if (s.accountId && !map[s.accountId]) map[s.accountId] = s;
+    }
+    return map;
+  }, []);
+
   const byType = useMemo(() => {
     const m = {};
     accounts.forEach((a) => {
-      m[a.type] = (m[a.type] || 0) + (Number(a.balance) || 0);
+      const bal = a.type === 'creditCard'
+        ? (a.balance != null && a.balance !== '' ? Number(a.balance) : (stmtByAccount[a.id]?.summary?.totalDue ?? 0))
+        : (Number(a.balance) || 0);
+      m[a.type] = (m[a.type] || 0) + bal;
     });
     return m;
-  }, [accounts]);
+  }, [accounts, stmtByAccount]);
 
   const recent = useMemo(
     () =>
@@ -95,7 +107,7 @@ export default function Dashboard({ totals, accounts, onAdd, onEdit, onImport })
           <SectionHeader title="Recent activity" caption="Last touched" />
           <div className="list">
             {recent.map((a) => (
-              <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} compact />
+              <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} compact statement={stmtByAccount[a.id]} />
             ))}
           </div>
         </section>

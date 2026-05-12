@@ -560,7 +560,7 @@ a { color: inherit; text-decoration: none; }
 }
 .modal-body {
   padding: 20px 28px;
-  max-height: 60vh;
+  max-height: 72vh;
   overflow-y: auto;
 }
 .modal-footer {
@@ -773,7 +773,7 @@ a { color: inherit; text-decoration: none; }
     max-height: 92dvh;
     overflow-y: auto;
   }
-  .modal-body { max-height: 55dvh; }
+  .modal-body { max-height: 70dvh; }
   .modal-footer { flex-wrap: wrap; gap: 8px; }
 
   /* type picker: single column on very small screens */

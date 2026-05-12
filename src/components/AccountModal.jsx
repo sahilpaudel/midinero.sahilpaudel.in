@@ -148,6 +148,21 @@ export default function AccountModal({ type, account, onClose, onSave, onDelete,
           </div>
         ))}
 
+        {/* Bank: optional balance — separate from identity fields */}
+        {type === 'bank' && (
+          <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16 }}>
+            <Field
+              field={{ k: 'balance', label: 'Current balance', type: 'number', prefix: '₹', hint: 'Optional — you can also sync from Gmail' }}
+              value={data.balance || ''}
+              onChange={v => setField('balance', v)}
+            />
+            <GmailSync
+              account={{ ...data, type }}
+              onBalance={v => setField('balance', v)}
+            />
+          </div>
+        )}
+
         {/* CC: outstanding amount + due date info */}
         {type === 'creditCard' && (Number(data.balance) > 0 || data.dueDate) && (
           <div style={{

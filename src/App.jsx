@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ACCOUNT_TYPES } from './lib/accountTypes.js';
 import { mergeImportedAccounts } from './lib/importMerge.js';
 import { loadAccounts, saveAccounts } from './lib/storage.js';
-import { loadStatement } from './lib/statementStore.js';
+import { loadStatement, loadStatements } from './lib/statementStore.js';
 import TopBar from './components/TopBar.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import Footer from './components/Footer.jsx';
@@ -39,12 +39,27 @@ export default function App() {
   useEffect(() => saveAccounts(accounts), [accounts]);
 
   const totals = useMemo(() => {
+    // Build latest-statement map so CC totalDue is used instead of a.balance
+    const stmtByAccount = {};
+    for (const s of loadStatements()) {
+      if (s.accountId && !stmtByAccount[s.accountId]) stmtByAccount[s.accountId] = s;
+    }
+    const effectiveBalance = (a) => {
+      if (a.type === 'creditCard') {
+        // a.balance is authoritative when explicitly set (0 = paid, >0 = synced/manual).
+        // Only fall back to statement totalDue when balance has never been set.
+        if (a.balance != null && a.balance !== '') return Number(a.balance);
+        const due = stmtByAccount[a.id]?.summary?.totalDue;
+        return due != null ? Number(due) : 0;
+      }
+      return Number(a.balance) || 0;
+    };
     const assets = accounts
       .filter((a) => ACCOUNT_TYPES[a.type]?.kind === 'asset')
-      .reduce((s, a) => s + (Number(a.balance) || 0), 0);
+      .reduce((s, a) => s + effectiveBalance(a), 0);
     const liabs = accounts
       .filter((a) => ACCOUNT_TYPES[a.type]?.kind === 'liability')
-      .reduce((s, a) => s + (Number(a.balance) || 0), 0);
+      .reduce((s, a) => s + effectiveBalance(a), 0);
     return { assets, liabs, net: assets - liabs };
   }, [accounts]);
 

@@ -31,8 +31,6 @@ export const FIELD_SCHEMAS = {
     { k: 'accountNumber', label: 'Account number',    placeholder: 'XXXX1234' },
     { k: 'accountType',   label: 'Type', type: 'select',
       options: ['Savings', 'Current', 'Salary', 'NRE', 'NRO', 'FD'] },
-    { k: 'balance',       label: 'Current balance',   type: 'number', prefix: '₹', gmailSync: true,
-      hint: 'Leave blank to sync from Gmail' },
   ],
   mutualFund: [
     { k: 'nickname', label: 'Folio nickname', placeholder: 'Parag Parikh Flexi Cap', required: true },
@@ -90,8 +88,6 @@ export const FIELD_SCHEMAS = {
     { k: 'issuer',   label: 'Issuer',              placeholder: 'HDFC Bank' },
     { k: 'last4',    label: 'Last 4 digits',       placeholder: '1234' },
     { k: 'limit',    label: 'Credit limit',        type: 'number', prefix: '₹' },
-    { k: 'balance',  label: 'Current outstanding', type: 'number', prefix: '₹' },
-    { k: 'dueDate',  label: 'Next due date',       type: 'date' },
   ],
   loan: [
     { k: 'nickname',  label: 'Loan nickname',          placeholder: 'Home loan · HDFC', required: true },

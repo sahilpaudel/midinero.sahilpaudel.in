@@ -3,10 +3,20 @@ import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
 import { Icon } from '../icons/Icon.jsx';
 import AccountRow from '../components/AccountRow.jsx';
 import EmptyState from '../components/EmptyState.jsx';
+import { loadStatements } from '../lib/statementStore.js';
 
 export default function AccountsView({ accounts, onAdd, onEdit }) {
   const [filter, setFilter] = useState('all');
   const [q, setQ] = useState('');
+
+  // Latest statement keyed by accountId — used to show live statement data in rows
+  const stmtByAccount = useMemo(() => {
+    const map = {};
+    for (const s of loadStatements()) {
+      if (s.accountId && !map[s.accountId]) map[s.accountId] = s;
+    }
+    return map;
+  }, []);
 
   const filtered = useMemo(() => {
     return accounts.filter((a) => {
@@ -72,7 +82,7 @@ export default function AccountsView({ accounts, onAdd, onEdit }) {
 
       <div className="list">
         {filtered.map((a) => (
-          <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} />
+          <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} statement={stmtByAccount[a.id]} />
         ))}
         {filtered.length === 0 && (
           <div style={{
