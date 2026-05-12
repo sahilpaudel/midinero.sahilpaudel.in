@@ -109,7 +109,7 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [] }) {
     <div className="pt-14 fade" style={{ maxWidth: 720 }}>
       <div className="eyebrow mb-3">Import</div>
       <h1 style={{
-        fontFamily: 'Fraunces, serif', fontSize: 44,
+        fontFamily: 'Fraunces, serif', fontSize: 'clamp(28px, 8vw, 44px)',
         letterSpacing: '-0.03em', lineHeight: 1.05, marginTop: 0, marginBottom: 16,
       }}>
         Bring it all in,<br />without the spreadsheet.

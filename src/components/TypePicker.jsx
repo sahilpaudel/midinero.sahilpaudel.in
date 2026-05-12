@@ -31,14 +31,14 @@ export default function TypePicker({ onClose, onPick }) {
 
       <div style={{ padding: '0 20px 12px' }}>
         <div className="eyebrow" style={{ padding: '12px 8px 8px' }}>Assets</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 6 }}>
           {ASSET_KEYS.map((k) => (
             <TypeButton key={k} type={k} onPick={onPick} />
           ))}
         </div>
 
         <div className="eyebrow" style={{ padding: '20px 8px 8px' }}>Liabilities</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 6 }}>
           {LIAB_KEYS.map((k) => (
             <TypeButton key={k} type={k} onPick={onPick} />
           ))}

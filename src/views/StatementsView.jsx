@@ -180,11 +180,11 @@ function SpendingInsights({ statements }) {
         padding: '20px 20px 20px 16px',
         border: '1px solid var(--line)', borderRadius: 12,
         background: 'var(--surface)',
-        display: 'flex', gap: 28, alignItems: 'flex-start',
+        display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap',
       }}>
         <DonutChart cats={cats} total={totalSpend} />
 
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 4 }}>
+        <div style={{ flex: 1, minWidth: 180, display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 4 }}>
           {cats.map((cat, i) => (
             <div key={cat.category}>
               <div style={{

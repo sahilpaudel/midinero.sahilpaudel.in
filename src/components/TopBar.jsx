@@ -18,7 +18,7 @@ export default function TopBar({ view, setView, onAdd, hasAny, theme, onToggleTh
             <span className="brand-name">MiDinero</span>
             <span className="pill" style={{ marginLeft: 4 }}>private</span>
           </div>
-          <nav className="nav">
+          <nav className="nav mobile-hidden">
             {TABS.map((t) => (
               <button
                 key={t.k}
@@ -52,7 +52,7 @@ export default function TopBar({ view, setView, onAdd, hasAny, theme, onToggleTh
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={14} stroke={1.6} />
           </button>
           {hasAny && (
-            <button className="btn-primary" onClick={onAdd}>
+            <button className="btn-primary mobile-hidden" onClick={onAdd}>
               <Icon name="plus" size={14} stroke={2} /> Add account
             </button>
           )}

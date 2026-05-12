@@ -4,6 +4,7 @@ import { mergeImportedAccounts } from './lib/importMerge.js';
 import { loadAccounts, saveAccounts } from './lib/storage.js';
 import { loadStatement } from './lib/statementStore.js';
 import TopBar from './components/TopBar.jsx';
+import BottomNav from './components/BottomNav.jsx';
 import Footer from './components/Footer.jsx';
 import TypePicker from './components/TypePicker.jsx';
 import AccountModal from './components/AccountModal.jsx';
@@ -129,6 +130,8 @@ export default function App() {
       </main>
 
       <Footer />
+
+      <BottomNav view={view} setView={setView} onAdd={() => setPicker(true)} />
 
       {picker && <TypePicker onClose={() => setPicker(false)} onPick={openAdd} />}
       {modal && (

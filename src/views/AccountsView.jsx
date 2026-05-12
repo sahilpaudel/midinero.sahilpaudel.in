@@ -44,7 +44,7 @@ export default function AccountsView({ accounts, onAdd, onEdit }) {
         </button>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         <div className="chips">
           {[
             ['all', 'All'],

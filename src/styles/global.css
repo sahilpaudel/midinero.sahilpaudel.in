@@ -689,3 +689,103 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
+
+/* ─── Bottom navigation (mobile only) ─── */
+.bottom-nav { display: none; }
+
+@media (max-width: 640px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    border-top: 1px solid var(--line);
+    background: var(--ink);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    align-items: center;
+    justify-content: space-around;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-faint);
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  transition: color 0.15s ease;
+  border-radius: 8px;
+}
+.bottom-nav-item.active { color: var(--text); }
+.bottom-nav-item.active svg { stroke-width: 1.8; }
+
+.bottom-nav-fab {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  box-shadow: 0 4px 20px rgba(212, 255, 58, 0.3);
+}
+.bottom-nav-fab:active { transform: scale(0.94); }
+
+/* ─── Mobile overrides ─── */
+@media (max-width: 640px) {
+  .container { padding: 0 16px; }
+  .topbar-inner { padding: 0 16px; gap: 12px; }
+  .mobile-hidden { display: none !important; }
+
+  /* push content above the fixed bottom nav */
+  .pb-32 { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
+
+  /* row: tighter on mobile */
+  .row { padding: 12px 14px; gap: 12px; }
+  .row-icon { width: 32px; height: 32px; }
+  .row-amount { font-size: 13px; }
+
+  /* reduce big top padding */
+  .pt-14 { padding-top: 20px; }
+  .pt-24 { padding-top: 28px; }
+
+  /* modal: slide up from bottom like a sheet */
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal {
+    border-radius: 20px 20px 0 0;
+    max-width: 100% !important;
+    max-height: 92dvh;
+    overflow-y: auto;
+  }
+  .modal-body { max-height: 55dvh; }
+  .modal-footer { flex-wrap: wrap; gap: 8px; }
+
+  /* type picker: single column on very small screens */
+  .type-grid-mobile { grid-template-columns: 1fr !important; }
+
+  /* stat cards: compact */
+  .stat { padding: 16px; }
+  .stat-value { font-size: 22px; }
+
+  /* section header */
+  .section-title { font-size: 18px; }
+
+  /* footer: hide on mobile (bottom nav replaces it) */
+  .footer { display: none; }
+}
