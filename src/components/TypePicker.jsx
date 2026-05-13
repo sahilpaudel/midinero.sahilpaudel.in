@@ -16,7 +16,7 @@ function TypeButton({ type, onPick }) {
   );
 }
 
-export default function TypePicker({ onClose, onPick, onImport }) {
+export default function TypePicker({ onClose, onPick, onImport, onManageFamily }) {
   return (
     <ModalShell onClose={onClose} maxWidth={640}>
       <div style={{ padding: '28px 28px 16px' }}>
@@ -65,9 +65,26 @@ export default function TypePicker({ onClose, onPick, onImport }) {
         color: 'var(--text-faint)',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'space-between',
         gap: 6,
       }}>
-        <Icon name="lock" size={11} stroke={1.6} /> Saved on this device only.
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Icon name="lock" size={11} stroke={1.6} /> Saved on this device only.
+        </span>
+        {onManageFamily && (
+          <button
+            type="button"
+            onClick={onManageFamily}
+            style={{
+              fontSize: 11, color: 'var(--text-faint)',
+              textDecoration: 'underline', textDecorationColor: 'var(--line)',
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              flexShrink: 0,
+            }}
+          >
+            Manage family
+          </button>
+        )}
       </div>
     </ModalShell>
   );

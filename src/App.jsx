@@ -236,6 +236,7 @@ export default function App() {
           onClose={() => setPicker(false)}
           onPick={openAdd}
           onImport={() => { setPicker(false); setView('import'); }}
+          onManageFamily={() => { setPicker(false); setFamilyModal(true); }}
         />
       )}
       {modal && (
