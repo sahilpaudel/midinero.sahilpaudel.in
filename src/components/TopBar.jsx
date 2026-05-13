@@ -6,7 +6,6 @@ const TABS = [
   { k: 'accounts',      label: 'Accounts' },
   { k: 'subscriptions', label: 'Subscriptions' },
   { k: 'statements',    label: 'Statements' },
-  { k: 'import',        label: 'Import' },
 ];
 
 export default function TopBar({ view, setView, onAdd, hasAny, theme, onToggleTheme }) {

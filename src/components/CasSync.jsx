@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { getToken, clearToken, fetchCasEmailBytes } from '../lib/gmail.js';
+import { getToken, clearToken, getCachedEmail, fetchCasEmailBytes } from '../lib/gmail.js';
 import { parseCasFromBytes } from '../lib/parseCas.js';
 import { fmtINR } from '../lib/format.js';
 import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
@@ -35,6 +35,7 @@ export default function CasSync({ accounts, onApply }) {
   const [password, setPassword]   = useState('');
   const [pendingBytes, setPendingBytes] = useState(null);
   const [selections, setSelections]    = useState({});
+  const [gmailEmail, setGmailEmail]    = useState(() => getCachedEmail());
   const fileRef = useRef(null);
 
   const buildAutoSelections = (hs) => {
@@ -84,12 +85,13 @@ export default function CasSync({ accounts, onApply }) {
     processBytes(bytes, stored || '', Boolean(stored));
   };
 
-  const fetchFromGmail = async (pwd = '', fromStore = false) => {
+  const fetchFromGmail = async (pwd = '', fromStore = false, selectAccount = false) => {
     setPhase('fetching');
     setError('');
     setPendingBytes(null);
     try {
-      const token = await getToken(CLIENT_ID);
+      const { token, email: authEmail } = await getToken(CLIENT_ID, { selectAccount });
+      if (authEmail) setGmailEmail(authEmail);
       const email = await fetchCasEmailBytes(token);
       if (!email) {
         setError('No CAS email found in Gmail (last 365 days).');
@@ -105,9 +107,9 @@ export default function CasSync({ accounts, onApply }) {
     }
   };
 
-  const handleFetchGmail = async () => {
+  const handleFetchGmail = async (selectAccount = false) => {
     const stored = await loadPassword('cas');
-    fetchFromGmail(stored || '', Boolean(stored));
+    fetchFromGmail(stored || '', Boolean(stored), selectAccount);
   };
 
   const unlock = () => {
@@ -163,9 +165,19 @@ export default function CasSync({ accounts, onApply }) {
         </div>
 
         {phase === 'idle' && (
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0, marginLeft: 16 }}>
+            {CLIENT_ID && gmailEmail && (
+              <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {gmailEmail}
+                <button type="button" onClick={() => handleFetchGmail(true)}
+                  style={{ fontSize: 11, color: 'var(--accent-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  Switch
+                </button>
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8 }}>
             {CLIENT_ID && (
-              <button type="button" onClick={handleFetchGmail} style={btnStyle}>
+              <button type="button" onClick={() => handleFetchGmail(false)} style={btnStyle}>
                 Fetch from Gmail
               </button>
             )}
@@ -179,6 +191,7 @@ export default function CasSync({ accounts, onApply }) {
               style={{ display: 'none' }}
               onChange={handleFileChange}
             />
+            </div>
           </div>
         )}
 

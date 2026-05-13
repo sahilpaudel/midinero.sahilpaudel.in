@@ -17,15 +17,65 @@ import StatementsView from './views/StatementsView.jsx';
 import StatementReportView from './views/StatementReportView.jsx';
 import SubscriptionsView from './views/SubscriptionsView.jsx';
 
+// ── hash routing helpers ────────────────────────────────────────────────────
+const HASH_TO_VIEW = {
+  '':              'dashboard',
+  'accounts':      'accounts',
+  'subscriptions': 'subscriptions',
+  'statements':    'statements',
+  'import':        'import',
+};
+const VIEW_TO_HASH = {
+  dashboard:      '',
+  accounts:       'accounts',
+  subscriptions:  'subscriptions',
+  statements:     'statements',
+  import:         'import',
+};
+
+function parseHash() {
+  const raw = window.location.hash.replace(/^#\/?/, '');
+  if (raw.startsWith('statements/')) {
+    return { view: 'statement', statementId: raw.slice('statements/'.length) };
+  }
+  return { view: HASH_TO_VIEW[raw] ?? 'dashboard', statementId: null };
+}
+
+function pushHash(view, statementId = null) {
+  const path = view === 'statement' && statementId
+    ? `statements/${statementId}`
+    : (VIEW_TO_HASH[view] ?? '');
+  const next = '#/' + path;
+  if (window.location.hash !== next) window.history.pushState(null, '', next);
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 export default function App() {
   const [accounts, setAccounts] = useState(loadAccounts);
   const [members,  setMembers]  = useState(loadMembers);
-  const [view, setView] = useState('dashboard'); // 'dashboard' | 'accounts' | 'subscriptions' | 'import' | 'statements' | 'statement'
-  const [statementId, setStatementId] = useState(null);
-  const [modal, setModal] = useState(null);      // { type, accountId: string|null } | null
+  const [location, setLocation] = useState(parseHash);
+  const [modal, setModal] = useState(null);
   const [picker, setPicker] = useState(false);
   const [familyModal, setFamilyModal] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  const view        = location.view;
+  const statementId = location.statementId;
+
+  // Sync browser back/forward → state
+  useEffect(() => {
+    const onPop = () => setLocation(parseHash());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  const navigate = (newView, id = null) => {
+    pushHash(newView, id);
+    setLocation({ view: newView, statementId: id });
+  };
+
+  // Drop-in replacement for old setView so all child callsites need no changes
+  const setView = (v) => navigate(v);
 
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
@@ -34,10 +84,8 @@ export default function App() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-
   const openReport = (id) => {
-    setStatementId(id);
-    setView('statement');
+    navigate('statement', id);
     setModal(null);
   };
 
@@ -148,8 +196,9 @@ export default function App() {
           <ImportView
             onAdd={() => setPicker(true)}
             existingAccounts={accounts}
-            onImport={(incoming) => {
-              const result = mergeImportedAccounts(accounts, incoming);
+            members={members}
+            onImport={(incoming, ownerId) => {
+              const result = mergeImportedAccounts(accounts, incoming, Date.now(), ownerId);
               saveAccounts(result.accounts);
               window.location.reload();
               return result;
@@ -172,8 +221,8 @@ export default function App() {
           <StatementReportView
             report={loadStatement(statementId)}
             accounts={accounts}
-            onBack={() => setView('statements')}
-            onDelete={() => { setStatementId(null); setView('statements'); }}
+            onBack={() => navigate('statements')}
+            onDelete={() => navigate('statements')}
           />
         )}
       </main>
@@ -182,7 +231,13 @@ export default function App() {
 
       <BottomNav view={view} setView={setView} onAdd={() => setPicker(true)} />
 
-      {picker && <TypePicker onClose={() => setPicker(false)} onPick={openAdd} />}
+      {picker && (
+        <TypePicker
+          onClose={() => setPicker(false)}
+          onPick={openAdd}
+          onImport={() => { setPicker(false); setView('import'); }}
+        />
+      )}
       {modal && (
         <AccountModal
           type={modal.type}

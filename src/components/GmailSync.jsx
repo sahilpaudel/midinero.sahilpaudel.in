@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getToken, clearToken, fetchGmailBalances } from '../lib/gmail.js';
+import { getToken, clearToken, getCachedEmail, fetchGmailBalances } from '../lib/gmail.js';
 import { fmtINR } from '../lib/format.js';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -8,14 +8,16 @@ export default function GmailSync({ account, onBalance }) {
   const [phase, setPhase] = useState('idle'); // idle | connecting | searching | found | empty | error
   const [emails, setEmails] = useState([]);
   const [error, setError] = useState('');
+  const [gmailEmail, setGmailEmail] = useState(() => getCachedEmail());
 
   if (!CLIENT_ID) return null;
 
-  const sync = async () => {
+  const sync = async (selectAccount = false) => {
     setPhase('connecting');
     setError('');
     try {
-      const token = await getToken(CLIENT_ID);
+      const { token, email: authEmail } = await getToken(CLIENT_ID, { selectAccount });
+      if (authEmail) setGmailEmail(authEmail);
       setPhase('searching');
       const found = await fetchGmailBalances(token, account);
       setEmails(found);
@@ -34,10 +36,19 @@ export default function GmailSync({ account, onBalance }) {
 
   return (
     <div style={{ marginTop: 6 }}>
+      {phase === 'idle' && gmailEmail && (
+        <div style={{ fontSize: 11, color: 'var(--text-faint)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+          {gmailEmail}
+          <button type="button" onClick={() => sync(true)}
+            style={{ fontSize: 11, color: 'var(--accent-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            Switch account
+          </button>
+        </div>
+      )}
       {phase === 'idle' && (
         <button
           type="button"
-          onClick={sync}
+          onClick={() => sync(false)}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 7,
             fontSize: 12, color: 'var(--text-dim)',

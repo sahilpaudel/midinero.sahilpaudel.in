@@ -6,6 +6,7 @@ const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1';
 let gisLoadPromise = null;
 
 const TOKEN_CACHE_KEY = 'midinero.gmail.token';
+const EMAIL_CACHE_KEY = 'midinero.gmail.email';
 const LAST_AUTH_KEY   = 'midinero.gmail.lastAuth';
 
 function getCachedToken() {
@@ -19,6 +20,10 @@ function getCachedToken() {
   return null;
 }
 
+export function getCachedEmail() {
+  return sessionStorage.getItem(EMAIL_CACHE_KEY) || '';
+}
+
 function cacheToken(token, expiresIn = 3599) {
   try {
     const expiry = Date.now() + Math.max(expiresIn - 60, 300) * 1000;
@@ -27,20 +32,34 @@ function cacheToken(token, expiresIn = 3599) {
   } catch { /* quota */ }
 }
 
-
 export function clearToken() {
   sessionStorage.removeItem(TOKEN_CACHE_KEY);
+  sessionStorage.removeItem(EMAIL_CACHE_KEY);
 }
 
-export async function getToken(clientId) {
-  const cached = getCachedToken();
-  if (cached) return cached;
-  const { token, expiresIn } = await _requestToken(clientId, false);
+// Returns { token, email }. Pass { selectAccount: true } to force account picker.
+export async function getToken(clientId, { selectAccount = false } = {}) {
+  if (!selectAccount) {
+    const cached = getCachedToken();
+    if (cached) return { token: cached, email: getCachedEmail() };
+  } else {
+    clearToken();
+  }
+  const { token, expiresIn } = await _requestToken(clientId, selectAccount);
   cacheToken(token, expiresIn);
-  return token;
+  let email = '';
+  try {
+    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    email = data.email || '';
+    if (email) sessionStorage.setItem(EMAIL_CACHE_KEY, email);
+  } catch { /* non-critical */ }
+  return { token, email };
 }
 
-async function _requestToken(clientId, silent) {
+async function _requestToken(clientId, selectAccount = false) {
   await loadGIS();
   return new Promise((resolve, reject) => {
     const client = window.google.accounts.oauth2.initTokenClient({
@@ -57,7 +76,7 @@ async function _requestToken(clientId, silent) {
         reject(new Error(err?.type || 'OAuth failed'));
       },
     });
-    client.requestAccessToken(silent ? { prompt: 'none' } : {});
+    client.requestAccessToken(selectAccount ? { prompt: 'select_account' } : {});
   });
 }
 
@@ -79,7 +98,7 @@ function loadGIS() {
 }
 
 export async function requestGmailToken(clientId) {
-  const { token } = await _requestToken(clientId, false);
+  const { token } = await getToken(clientId);
   return token;
 }
 
@@ -317,7 +336,7 @@ export async function fetchGmailBalances(token, account) {
 // Search the last 365 days for a CAS email with a PDF attachment.
 // Returns { bytes, subject, from, date, filename } or null if not found.
 export async function fetchCasEmailBytes(token) {
-  const query = 'subject:"CDSL Consolidated Account Statement" has:attachment';
+  const query = 'in:inbox subject:"CDSL Consolidated Account Statement" has:attachment';
 
   const listData = await gmailGet(token, '/users/me/messages', { q: query, maxResults: 1 });
   if (!listData.messages?.length) return null;

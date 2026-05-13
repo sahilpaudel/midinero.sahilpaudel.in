@@ -16,7 +16,7 @@ function TypeButton({ type, onPick }) {
   );
 }
 
-export default function TypePicker({ onClose, onPick }) {
+export default function TypePicker({ onClose, onPick, onImport }) {
   return (
     <ModalShell onClose={onClose} maxWidth={640}>
       <div style={{ padding: '28px 28px 16px' }}>
@@ -35,6 +35,18 @@ export default function TypePicker({ onClose, onPick }) {
           {ASSET_KEYS.map((k) => (
             <TypeButton key={k} type={k} onPick={onPick} />
           ))}
+          {onImport && (
+            <button className="type-btn" onClick={onImport}>
+              <div className="type-btn-icon" style={{ color: '#38bdf8' }}>
+                <Icon name="upload" size={15} stroke={1.5} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13 }}>CAS</div>
+                <div style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 1 }}>Import or Upload</div>
+              </div>
+              <Icon name="arrowRight" size={13} stroke={1.6} />
+            </button>
+          )}
         </div>
 
         <div className="eyebrow" style={{ padding: '20px 8px 8px' }}>Liabilities</div>
@@ -44,6 +56,7 @@ export default function TypePicker({ onClose, onPick }) {
           ))}
         </div>
       </div>
+
 
       <div style={{
         padding: '16px 28px',

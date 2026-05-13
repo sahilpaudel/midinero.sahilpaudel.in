@@ -2,11 +2,17 @@
 // Key is derived from user PIN via PBKDF2 and held only in memory.
 // vaultGetRaw / vaultSetRaw are synchronous (reads from in-memory cache)
 // so existing store modules need no async changes.
+//
+// Session persistence: after unlock the exported JWK is stored in
+// sessionStorage with a 30-min TTL. tryRestoreSession() re-imports it on
+// page reload so the PIN is only required once per tab (or per 30 min).
 
-const SALT_KEY  = 'midinero.vault.salt';
-const CHECK_KEY = 'midinero.vault.check';
+const SALT_KEY    = 'midinero.vault.salt';
+const CHECK_KEY   = 'midinero.vault.check';
+const SESSION_KEY = 'midinero.vault.session'; // sessionStorage
+const SESSION_TTL = 30 * 60 * 1000;           // 30 minutes
 
-let _key   = null; // CryptoKey — in memory only, never persisted
+let _key   = null; // CryptoKey — in memory only
 let _cache = {};   // { [lsKey]: decrypted JSON string }
 
 export function isVaultInitialized() {
@@ -24,7 +30,6 @@ export async function initVault(pin) {
   localStorage.setItem(SALT_KEY, _toB64(salt));
   localStorage.setItem(CHECK_KEY, await _enc(_key, 'ok'));
   _cache = {};
-  // Migrate any pre-existing plaintext data in one pass
   const keys = _collectDataKeys();
   for (const k of keys) {
     const raw = localStorage.getItem(k);
@@ -32,9 +37,10 @@ export async function initVault(pin) {
     _cache[k] = raw;
     localStorage.setItem(k, await _enc(_key, raw));
   }
+  await _saveSession(_key);
 }
 
-// Subsequent launches: re-derive key, verify PIN, populate in-memory cache.
+// Subsequent launches: re-derive key from PIN, verify, populate cache.
 export async function unlockVault(pin) {
   const saltRaw = localStorage.getItem(SALT_KEY);
   if (!saltRaw) throw new Error('not-initialized');
@@ -46,22 +52,37 @@ export async function unlockVault(pin) {
     if (result !== 'ok') throw new Error('wrong-pin');
   }
   _key = key;
-  _cache = {};
-  const keys = _collectDataKeys();
-  for (const k of keys) {
-    const raw = localStorage.getItem(k);
-    if (!raw) continue;
-    try {
-      _cache[k] = await _dec(key, raw);
-    } catch {
-      _cache[k] = raw; // legacy plaintext — will be re-encrypted on next write
-    }
+  await _populateCache(key);
+  await _saveSession(key);
+}
+
+// Restore from sessionStorage without requiring PIN. Returns true on success.
+export async function tryRestoreSession() {
+  if (_key) return true;
+  if (!isVaultInitialized()) return false;
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const { jwk, expiry } = JSON.parse(raw);
+    if (Date.now() > expiry) { sessionStorage.removeItem(SESSION_KEY); return false; }
+    const key = await crypto.subtle.importKey(
+      'jwk', jwk, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']
+    );
+    _key = key;
+    await _populateCache(key);
+    // Refresh TTL so activity extends the session
+    await _saveSession(key);
+    return true;
+  } catch {
+    sessionStorage.removeItem(SESSION_KEY);
+    return false;
   }
 }
 
 export function lockVault() {
   _key   = null;
   _cache = {};
+  sessionStorage.removeItem(SESSION_KEY);
 }
 
 // Wipes all app data and vault config — used when user forgets PIN.
@@ -72,6 +93,7 @@ export function resetVault() {
     if (k.startsWith('midinero') || k.startsWith('ledger')) toDelete.push(k);
   }
   toDelete.forEach(k => localStorage.removeItem(k));
+  sessionStorage.removeItem(SESSION_KEY);
   _key   = null;
   _cache = {};
 }
@@ -102,6 +124,30 @@ export function vaultRemove(lsKey) {
 
 // ── internals ──────────────────────────────────────────────────────────────
 
+async function _populateCache(key) {
+  _cache = {};
+  const keys = _collectDataKeys();
+  for (const k of keys) {
+    const raw = localStorage.getItem(k);
+    if (!raw) continue;
+    try {
+      _cache[k] = await _dec(key, raw);
+    } catch {
+      _cache[k] = raw; // legacy plaintext — re-encrypted on next write
+    }
+  }
+}
+
+async function _saveSession(key) {
+  try {
+    const jwk = await crypto.subtle.exportKey('jwk', key);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+      jwk,
+      expiry: Date.now() + SESSION_TTL,
+    }));
+  } catch { /* non-critical */ }
+}
+
 function _collectDataKeys() {
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -113,7 +159,6 @@ function _collectDataKeys() {
 
 function _shouldEncrypt(k) {
   if (k === SALT_KEY || k === CHECK_KEY) return false;
-  // These have their own encryption layer already
   if (k === 'midinero.crypto.key' || k.startsWith('midinero.pdf.pwd.')) return false;
   if (k === 'theme') return false;
   return k.startsWith('midinero') || k.startsWith('ledger');
@@ -127,7 +172,7 @@ async function _deriveKey(pin, salt) {
     { name: 'PBKDF2', salt, iterations: 100_000, hash: 'SHA-256' },
     km,
     { name: 'AES-GCM', length: 256 },
-    false,
+    true, // extractable so we can store in sessionStorage for session restore
     ['encrypt', 'decrypt']
   );
 }

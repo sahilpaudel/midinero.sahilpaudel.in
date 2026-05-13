@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import LockScreen from './components/LockScreen.jsx';
-import { isUnlocked } from './lib/vault.js';
+import { tryRestoreSession, isVaultInitialized } from './lib/vault.js';
 import './styles/global.css';
 
 function Root() {
-  const [unlocked, setUnlocked] = useState(() => isUnlocked());
+  // null = still checking session, false = locked, true = unlocked
+  const [unlocked, setUnlocked] = useState(null);
+
+  useEffect(() => {
+    // First try to restore from the 30-min sessionStorage session.
+    // If vault isn't set up yet, go straight to lock screen (first-time setup).
+    if (!isVaultInitialized()) {
+      setUnlocked(false);
+      return;
+    }
+    tryRestoreSession().then(ok => setUnlocked(ok));
+  }, []);
+
+  // Brief blank while the async session check runs (usually < 100ms)
+  if (unlocked === null) return null;
 
   if (!unlocked) {
     return <LockScreen onUnlock={() => setUnlocked(true)} />;

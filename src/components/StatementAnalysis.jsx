@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { getToken, clearToken, fetchLatestStatementEmail } from '../lib/gmail.js';
+import { getToken, clearToken, getCachedEmail, fetchLatestStatementEmail } from '../lib/gmail.js';
 import { storePassword, loadPassword, clearPassword } from '../lib/cryptoStore.js';
 import {
   parseBankStatement,
@@ -30,8 +30,8 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
   const [error, setError] = useState('');
   const [pdfPassword, setPdfPassword] = useState('');
   const [savedId, setSavedId] = useState(null);
-  // Stored bytes for file-upload → password → retry flow (avoids re-picking the file)
   const [pendingBytes, setPendingBytes] = useState(null);
+  const [gmailEmail, setGmailEmail] = useState(() => getCachedEmail());
   const fileRef = useRef(null);
 
   // ── Shared: parse text → save report ────────────────────────────────────────
@@ -108,12 +108,13 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
   };
 
   // ── Gmail path ───────────────────────────────────────────────────────────────
-  const analyzeGmail = async (password = '', fromStore = false) => {
+  const analyzeGmail = async (password = '', fromStore = false, selectAccount = false) => {
     setPendingBytes(null);
     setPhase('loading');
     setError('');
     try {
-      const token = await getToken(CLIENT_ID);
+      const { token, email: authEmail } = await getToken(CLIENT_ID, { selectAccount });
+      if (authEmail) setGmailEmail(authEmail);
       const email = await fetchLatestStatementEmail(token, account, password);
       if (!email) { setPhase('empty'); return; }
 
@@ -137,9 +138,9 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
     }
   };
 
-  const handleAnalyzeGmail = async () => {
+  const handleAnalyzeGmail = async (selectAccount = false) => {
     const stored = await loadPassword(account.id);
-    analyzeGmail(stored || '', Boolean(stored));
+    analyzeGmail(stored || '', Boolean(stored), selectAccount);
   };
 
   // ── Unlock (password retry for whichever path is pending) ───────────────────
@@ -186,9 +187,19 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
         </span>
 
         {phase === 'idle' && (
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+            {CLIENT_ID && gmailEmail && (
+              <div style={{ fontSize: 11, color: 'var(--text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {gmailEmail}
+                <button type="button" onClick={() => handleAnalyzeGmail(true)}
+                  style={{ fontSize: 11, color: 'var(--accent-text)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  Switch account
+                </button>
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8 }}>
             {CLIENT_ID && (
-              <button type="button" onClick={handleAnalyzeGmail}
+              <button type="button" onClick={() => handleAnalyzeGmail(false)}
                 style={btnStyle}
                 onMouseEnter={e => btnHover(e, true)}
                 onMouseLeave={e => btnHover(e, false)}
@@ -210,6 +221,7 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
               style={{ display: 'none' }}
               onChange={handleFileChange}
             />
+            </div>
           </div>
         )}
 

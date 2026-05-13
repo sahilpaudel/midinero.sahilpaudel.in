@@ -46,18 +46,26 @@ export function dedupeImportedAccounts(accounts) {
   return [...byKey.values()];
 }
 
-export function mergeImportedAccounts(existingAccounts, incomingAccounts, now = Date.now()) {
+// ownerId=null means first/sole member (accounts with null/undefined ownerId).
+// Matching is scoped to same-owner accounts so a second member's import
+// never overwrites the first member's identically-named accounts.
+export function mergeImportedAccounts(existingAccounts, incomingAccounts, now = Date.now(), ownerId = null) {
   const incoming = dedupeImportedAccounts(incomingAccounts);
   const incomingHasMfAggregate = incoming.some(isAggregateMutualFund);
+
+  const sameOwner = (acc) => (acc.ownerId ?? null) === (ownerId ?? null);
+
   const accounts = existingAccounts
-    .filter((account) => !(incomingHasMfAggregate && isImportedDetailedMutualFund(account)))
+    .filter((account) => !(incomingHasMfAggregate && isImportedDetailedMutualFund(account) && sameOwner(account)))
     .map((account) => ({ ...account }));
   const keyIndex = new Map();
   let created = 0;
   let updated = 0;
   let skipped = 0;
 
+  // Only index same-owner accounts so matches don't cross ownership boundaries.
   accounts.forEach((account, index) => {
+    if (!sameOwner(account)) return;
     getAccountLookupKeys(account).forEach((key) => {
       if (!keyIndex.has(key)) keyIndex.set(key, index);
     });
@@ -87,6 +95,7 @@ export function mergeImportedAccounts(existingAccounts, incomingAccounts, now = 
       importedAt: now,
       createdAt: now,
       updatedAt: now,
+      ...(ownerId ? { ownerId } : {}),
     };
 
     accounts.push(createdAccount);
