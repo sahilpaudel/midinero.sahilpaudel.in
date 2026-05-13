@@ -13,10 +13,11 @@ import AccountsView from './views/AccountsView.jsx';
 import ImportView from './views/ImportView.jsx';
 import StatementsView from './views/StatementsView.jsx';
 import StatementReportView from './views/StatementReportView.jsx';
+import SubscriptionsView from './views/SubscriptionsView.jsx';
 
 export default function App() {
   const [accounts, setAccounts] = useState(loadAccounts);
-  const [view, setView] = useState('dashboard'); // 'dashboard' | 'accounts' | 'import' | 'statements' | 'statement'
+  const [view, setView] = useState('dashboard'); // 'dashboard' | 'accounts' | 'subscriptions' | 'import' | 'statements' | 'statement'
   const [statementId, setStatementId] = useState(null);
   const [modal, setModal] = useState(null);      // { type, accountId: string|null } | null
   const [picker, setPicker] = useState(false);
@@ -124,6 +125,7 @@ export default function App() {
             }}
           />
         )}
+        {view === 'subscriptions' && <SubscriptionsView />}
         {view === 'statements' && (
           <StatementsView
             onOpen={openReport}

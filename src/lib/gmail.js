@@ -5,13 +5,75 @@ const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1';
 
 let gisLoadPromise = null;
 
-// Shared token — set once after OAuth, reused by GmailSync and StatementAnalysis.
-let _token = null;
-export function clearToken() { _token = null; }
+const TOKEN_CACHE_KEY = 'midinero.gmail.token';
+const LAST_AUTH_KEY   = 'midinero.gmail.lastAuth';
+
+function getCachedToken() {
+  try {
+    const raw = sessionStorage.getItem(TOKEN_CACHE_KEY);
+    if (!raw) return null;
+    const { token, expiry } = JSON.parse(raw);
+    if (Date.now() < expiry) return token;
+    sessionStorage.removeItem(TOKEN_CACHE_KEY);
+  } catch { /* */ }
+  return null;
+}
+
+function cacheToken(token, expiresIn = 3599) {
+  try {
+    const expiry = Date.now() + Math.max(expiresIn - 60, 300) * 1000;
+    sessionStorage.setItem(TOKEN_CACHE_KEY, JSON.stringify({ token, expiry }));
+    localStorage.setItem(LAST_AUTH_KEY, String(Date.now()));
+  } catch { /* quota */ }
+}
+
+function wasRecentlyAuthed() {
+  return Date.now() - Number(localStorage.getItem(LAST_AUTH_KEY) || 0) < 86400000; // 24 h
+}
+
+// Clears the active token but keeps the lastAuthTime so silent refresh is
+// still attempted before falling back to the OAuth popup.
+export function clearToken() {
+  sessionStorage.removeItem(TOKEN_CACHE_KEY);
+}
+
 export async function getToken(clientId) {
-  if (_token) return _token;
-  _token = await requestGmailToken(clientId);
-  return _token;
+  const cached = getCachedToken();
+  if (cached) return cached;
+
+  // Within 24 h of last auth: try a silent token refresh (no popup).
+  if (wasRecentlyAuthed()) {
+    try {
+      const { token, expiresIn } = await _requestToken(clientId, true);
+      cacheToken(token, expiresIn);
+      return token;
+    } catch { /* silent failed — fall through to interactive */ }
+  }
+
+  const { token, expiresIn } = await _requestToken(clientId, false);
+  cacheToken(token, expiresIn);
+  return token;
+}
+
+async function _requestToken(clientId, silent) {
+  await loadGIS();
+  return new Promise((resolve, reject) => {
+    const client = window.google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: GMAIL_SCOPE,
+      callback: (response) => {
+        if (response.error) {
+          reject(new Error(response.error_description || response.error));
+        } else {
+          resolve({ token: response.access_token, expiresIn: response.expires_in || 3599 });
+        }
+      },
+      error_callback: (err) => {
+        reject(new Error(err?.type || 'OAuth failed'));
+      },
+    });
+    client.requestAccessToken(silent ? { prompt: 'none' } : {});
+  });
 }
 
 function loadGIS() {
@@ -32,21 +94,8 @@ function loadGIS() {
 }
 
 export async function requestGmailToken(clientId) {
-  await loadGIS();
-  return new Promise((resolve, reject) => {
-    const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: GMAIL_SCOPE,
-      callback: (response) => {
-        if (response.error) {
-          reject(new Error(response.error_description || response.error));
-        } else {
-          resolve(response.access_token);
-        }
-      },
-    });
-    client.requestAccessToken();
-  });
+  const { token } = await _requestToken(clientId, false);
+  return token;
 }
 
 async function gmailGet(token, path, params = {}) {
@@ -95,6 +144,8 @@ function buildQuery(account) {
 
   const parts = ['newer_than:90d', typeQuery];
   if (term) parts.push(`(${term}${typeHint ? ' ' + typeHint : ''})`);
+  // Exclude credit-card emails from bank and loan queries.
+  if (account.type === 'bank' || account.type === 'loan') parts.push('-"credit card"');
   return parts.join(' ');
 }
 
@@ -301,6 +352,59 @@ export async function fetchCasEmailBytes(token) {
 
   const bytes = await fetchAttachmentBytes(token, id, pdfPart.attachmentId);
   return { bytes, subject, from, date: dateStr, filename: pdfPart.filename };
+}
+
+// Fetch only headers for a message — much lighter than format=full.
+async function gmailGetMeta(token, msgId) {
+  const url = new URL(`${GMAIL_API}/users/me/messages/${msgId}`);
+  url.searchParams.set('format', 'metadata');
+  ['Subject', 'From', 'Date'].forEach((h) => url.searchParams.append('metadataHeaders', h));
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error(`Gmail API ${res.status}`);
+  return res.json();
+}
+
+// Scan Gmail for subscription/renewal emails and return detected services.
+// Uses metadata-only fetches so 200 messages load quickly.
+export async function fetchSubscriptionEmails(token) {
+  const query = 'subject:(subscription OR renewal OR receipt OR invoice OR "payment received" OR "auto-renewal") newer_than:365d';
+  const listData = await gmailGet(token, '/users/me/messages', { q: query, maxResults: 200 });
+  if (!listData.messages?.length) return [];
+
+  // Fetch all headers in parallel — metadata calls are ~10× lighter than full.
+  const settled = await Promise.allSettled(
+    listData.messages.map((msg) => gmailGetMeta(token, msg.id))
+  );
+
+  const seen = new Set();
+  const results = [];
+
+  for (const outcome of settled) {
+    if (outcome.status !== 'fulfilled') continue;
+    const msg     = outcome.value;
+    const headers = msg.payload?.headers || [];
+    const subject  = headerVal(headers, 'Subject') || '';
+    const from     = headerVal(headers, 'From') || '';
+    const date     = headerVal(headers, 'Date') || '';
+    const fromName = from.replace(/<[^>]+>/g, '').replace(/["']/g, '').trim();
+
+    const amountMatch =
+      subject.match(/(?:₹|rs\.?|inr)\s*([\d,]+(?:\.\d{1,2})?)/i) ||
+      subject.match(/([\d,]+(?:\.\d{2})?)\s*(?:₹|rs\.?|inr)/i);
+    const amount = amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : null;
+
+    const dedupeKey = fromName.toLowerCase().replace(/[^a-z]/g, '').slice(0, 24);
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+
+    let dateStr = '';
+    try { dateStr = new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
+    catch { /* */ }
+
+    results.push({ id: msg.id, subject, from: fromName, date: dateStr, amount });
+  }
+
+  return results;
 }
 
 export async function fetchLatestStatementEmail(token, account, pdfPassword = '') {

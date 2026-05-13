@@ -1,10 +1,45 @@
 // All data stays on this device. localStorage only — no server, no telemetry.
 
+export function exportAllData() {
+  const dump = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('midinero') || k.startsWith('ledger')) dump[k] = localStorage.getItem(k);
+  }
+  const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `midinero-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importAllData(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const dump = JSON.parse(e.target.result);
+        if (typeof dump !== 'object' || Array.isArray(dump)) throw new Error('Invalid backup file.');
+        Object.entries(dump).forEach(([k, v]) => localStorage.setItem(k, v));
+        resolve();
+        window.location.reload();
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('Could not read file.'));
+    reader.readAsText(file);
+  });
+}
+
 import { ACCOUNT_TYPES } from './accountTypes.js';
 import { isAggregateMutualFund, isImportedDetailedMutualFund, normalizeIsin } from './importMerge.js';
 
-const LEGACY_STORE_KEY = 'ledger.v1.accounts';
-const TYPE_STORE_PREFIX = 'ledger.v2.accounts.';
+const LEGACY_STORE_KEY   = 'ledger.v1.accounts';
+const LEGACY_V2_PREFIX   = 'ledger.v2.accounts.';
+const TYPE_STORE_PREFIX  = 'midinero.v2.accounts.';
 const TYPE_KEYS = Object.keys(ACCOUNT_TYPES);
 
 export function loadAccounts() {
@@ -34,7 +69,7 @@ export function saveAccounts(list) {
 }
 
 function loadTypedAccounts() {
-  return TYPE_KEYS.flatMap((type) => {
+  const accounts = TYPE_KEYS.flatMap((type) => {
     try {
       const stored = JSON.parse(localStorage.getItem(typeStoreKey(type)) || '[]');
       return Array.isArray(stored)
@@ -44,6 +79,22 @@ function loadTypedAccounts() {
       return [];
     }
   });
+
+  if (accounts.length > 0) return accounts;
+
+  // Migrate from old ledger.v2.* keys on first load after rename.
+  const migrated = TYPE_KEYS.flatMap((type) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(`${LEGACY_V2_PREFIX}${type}`) || '[]');
+      return Array.isArray(stored)
+        ? stored.map((account) => ({ ...account, type: account.type || type }))
+        : [];
+    } catch {
+      return [];
+    }
+  });
+
+  return migrated;
 }
 
 function groupByType(list) {

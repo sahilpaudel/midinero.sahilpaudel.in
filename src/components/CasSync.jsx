@@ -3,6 +3,7 @@ import { getToken, clearToken, fetchCasEmailBytes } from '../lib/gmail.js';
 import { parseCasFromBytes } from '../lib/parseCas.js';
 import { fmtINR } from '../lib/format.js';
 import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
+import { storePassword, loadPassword, clearPassword } from '../lib/cryptoStore.js';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -45,11 +46,12 @@ export default function CasSync({ accounts, onApply }) {
     return auto;
   };
 
-  const processBytes = async (bytes, pwd = '') => {
+  const processBytes = async (bytes, pwd = '', fromStore = false) => {
     setPhase('reading');
     setError('');
     try {
       const { source: src, holdings: raw } = await parseCasFromBytes(bytes, pwd);
+      if (pwd) storePassword('cas', pwd);
       const hs = raw.filter((h) => Number(h.balance) > 0);
       setCasSource(src);
       setHoldings(hs);
@@ -58,7 +60,11 @@ export default function CasSync({ accounts, onApply }) {
     } catch (err) {
       if (err?.name === 'PasswordException' || err?.code === 1 || err?.code === 2) {
         setPendingBytes(bytes);
-        if (pwd) setError('Incorrect password — try again.');
+        if (fromStore) {
+          clearPassword('cas');
+        } else if (pwd) {
+          setError('Incorrect password — try again.');
+        }
         setPhase('locked');
       } else {
         setError(err.message || 'Could not read PDF.');
@@ -74,10 +80,11 @@ export default function CasSync({ accounts, onApply }) {
     setSource({ subject: file.name, from: 'Uploaded PDF', date: '' });
     setPendingBytes(null);
     const bytes = new Uint8Array(await file.arrayBuffer());
-    processBytes(bytes);
+    const stored = await loadPassword('cas');
+    processBytes(bytes, stored || '', Boolean(stored));
   };
 
-  const fetchFromGmail = async (pwd = '') => {
+  const fetchFromGmail = async (pwd = '', fromStore = false) => {
     setPhase('fetching');
     setError('');
     setPendingBytes(null);
@@ -90,7 +97,7 @@ export default function CasSync({ accounts, onApply }) {
         return;
       }
       setSource({ subject: email.subject, from: email.from, date: email.date });
-      processBytes(email.bytes, pwd);
+      processBytes(email.bytes, pwd, fromStore);
     } catch (err) {
       clearToken();
       setError(err.message || 'Could not fetch from Gmail.');
@@ -98,10 +105,15 @@ export default function CasSync({ accounts, onApply }) {
     }
   };
 
+  const handleFetchGmail = async () => {
+    const stored = await loadPassword('cas');
+    fetchFromGmail(stored || '', Boolean(stored));
+  };
+
   const unlock = () => {
     if (!password) return;
-    if (pendingBytes) processBytes(pendingBytes, password);
-    else fetchFromGmail(password);
+    if (pendingBytes) processBytes(pendingBytes, password, false);
+    else fetchFromGmail(password, false);
   };
 
   const apply = () => {
@@ -153,7 +165,7 @@ export default function CasSync({ accounts, onApply }) {
         {phase === 'idle' && (
           <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 16 }}>
             {CLIENT_ID && (
-              <button type="button" onClick={() => fetchFromGmail()} style={btnStyle}>
+              <button type="button" onClick={handleFetchGmail} style={btnStyle}>
                 Fetch from Gmail
               </button>
             )}

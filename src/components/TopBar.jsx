@@ -2,10 +2,11 @@ import React from 'react';
 import { Icon } from '../icons/Icon.jsx';
 
 const TABS = [
-  { k: 'dashboard',  label: 'Overview' },
-  { k: 'accounts',   label: 'Accounts' },
-  { k: 'statements', label: 'Statements' },
-  { k: 'import',     label: 'Import' },
+  { k: 'dashboard',     label: 'Overview' },
+  { k: 'accounts',      label: 'Accounts' },
+  { k: 'subscriptions', label: 'Subscriptions' },
+  { k: 'statements',    label: 'Statements' },
+  { k: 'import',        label: 'Import' },
 ];
 
 export default function TopBar({ view, setView, onAdd, hasAny, theme, onToggleTheme }) {

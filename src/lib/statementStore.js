@@ -1,4 +1,5 @@
-const KEY = 'ledger.v2.statements';
+const LEGACY_KEY = 'ledger.v2.statements';
+const KEY        = 'midinero.v2.statements';
 
 function accountKey(r) {
   return r.accountId || `${r.accountType}:${r.accountNickname}`;
@@ -25,7 +26,13 @@ export function saveStatement(record) {
 }
 
 export function loadStatements() {
-  try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; }
+  try {
+    const data = localStorage.getItem(KEY);
+    if (data) return JSON.parse(data);
+    // Migrate from old ledger.v2.statements key on first load after rename.
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    return legacy ? JSON.parse(legacy) : [];
+  } catch { return []; }
 }
 
 export function loadStatement(id) {

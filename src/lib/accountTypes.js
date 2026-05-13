@@ -1,4 +1,4 @@
-// The single source of truth for what kinds of accounts Ledger supports
+// The single source of truth for what kinds of accounts MiDinero supports
 // and what fields each account type captures. To add a new type:
 //   1) add an entry to ACCOUNT_TYPES
 //   2) add a field schema to FIELD_SCHEMAS

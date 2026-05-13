@@ -2,10 +2,10 @@ import React from 'react';
 import { Icon } from '../icons/Icon.jsx';
 
 const TABS = [
-  { k: 'dashboard',  label: 'Overview',   icon: 'pie'    },
-  { k: 'accounts',   label: 'Accounts',   icon: 'bank'   },
-  { k: 'statements', label: 'Statements', icon: 'pdf'    },
-  { k: 'import',     label: 'Import',     icon: 'upload' },
+  { k: 'dashboard',     label: 'Overview',       icon: 'pie'    },
+  { k: 'accounts',      label: 'Accounts',       icon: 'bank'   },
+  { k: 'subscriptions', label: 'Subscriptions',  icon: 'repeat' },
+  { k: 'import',        label: 'Import',         icon: 'upload' },
 ];
 
 export default function BottomNav({ view, setView, onAdd }) {

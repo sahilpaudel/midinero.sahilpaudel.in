@@ -4,6 +4,7 @@ import ComingSoonCard from '../components/ComingSoonCard.jsx';
 import { findMatchingAccount } from '../lib/importMerge.js';
 import { parseCasFromBytes } from '../lib/parseCas.js';
 import { getToken, clearToken, fetchCasEmailBytes } from '../lib/gmail.js';
+import { storePassword, loadPassword, clearPassword } from '../lib/cryptoStore.js';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -26,16 +27,22 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [] }) {
   const inputRef = useRef();
 
   // Both file and Gmail paths converge here.
-  const parseBytes = async (bytes, pwd = '') => {
+  // fromStore=true means the password was auto-tried from storage (not user-typed).
+  const parseBytes = async (bytes, pwd = '', fromStore = false) => {
     setStatus('parsing');
     setPwError('');
     try {
       const result = await parseCasFromBytes(bytes, pwd);
+      if (pwd) storePassword('cas', pwd); // fire-and-forget
       setStatus(result);
     } catch (err) {
       if (err?.name === 'PasswordException' || err?.code === 1 || err?.code === 2) {
         setPendingBytes(bytes);
-        if (pwd) setPwError('Incorrect password — try again.');
+        if (fromStore) {
+          clearPassword('cas'); // stored password no longer valid
+        } else if (pwd) {
+          setPwError('Incorrect password — try again.');
+        }
         setStatus('locked');
       } else {
         setStatus({ error: err.message || 'Could not parse this PDF.' });
@@ -54,7 +61,8 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [] }) {
     setPwError('');
     setStatus('parsing');
     const bytes = new Uint8Array(await f.arrayBuffer());
-    parseBytes(bytes);
+    const stored = await loadPassword('cas');
+    parseBytes(bytes, stored || '', Boolean(stored));
   };
 
   // Gmail path.
@@ -74,7 +82,8 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [] }) {
         return;
       }
       setEmailMeta({ subject: email.subject, from: email.from, date: email.date });
-      parseBytes(email.bytes);
+      const stored = await loadPassword('cas');
+      parseBytes(email.bytes, stored || '', Boolean(stored));
     } catch (err) {
       clearToken();
       setStatus({ error: err.message || 'Could not fetch from Gmail.' });
@@ -83,7 +92,7 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [] }) {
 
   const unlock = () => {
     if (!password || !pendingBytes) return;
-    parseBytes(pendingBytes, password);
+    parseBytes(pendingBytes, password, false);
   };
 
   const handleImport = () => {

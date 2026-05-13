@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { getToken, clearToken, fetchLatestStatementEmail } from '../lib/gmail.js';
+import { storePassword, loadPassword, clearPassword } from '../lib/cryptoStore.js';
 import {
   parseBankStatement,
   parseCreditCardStatement,
@@ -69,20 +70,25 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
   };
 
   // ── File upload path ─────────────────────────────────────────────────────────
-  const analyzeBytes = async (bytes, password = '') => {
+  const analyzeBytes = async (bytes, password = '', fromStore = false) => {
     setPhase('loading');
     setError('');
     try {
       const text = await extractTextFromBytes(bytes, password);
+      if (password) storePassword(account.id, password);
       processText(text, {
-        subject: pendingBytes ? source?.subject || 'Uploaded PDF' : source?.subject || 'Uploaded PDF',
+        subject: source?.subject || 'Uploaded PDF',
         from: 'Manual upload',
         date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
       });
     } catch (err) {
       if (err?.name === 'PasswordException' || err?.code === 1 || err?.code === 2) {
         setPendingBytes(bytes);
-        if (password) setError('Incorrect password — please try again.');
+        if (fromStore) {
+          clearPassword(account.id);
+        } else if (password) {
+          setError('Incorrect password — please try again.');
+        }
         setPhase('locked');
       } else {
         setError(err.message || 'Could not read PDF.');
@@ -94,14 +100,15 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    e.target.value = ''; // reset so same file can be re-picked
+    e.target.value = '';
     setSource({ subject: file.name, from: 'Manual upload', date: '' });
     const bytes = new Uint8Array(await file.arrayBuffer());
-    analyzeBytes(bytes);
+    const stored = await loadPassword(account.id);
+    analyzeBytes(bytes, stored || '', Boolean(stored));
   };
 
   // ── Gmail path ───────────────────────────────────────────────────────────────
-  const analyzeGmail = async (password = '') => {
+  const analyzeGmail = async (password = '', fromStore = false) => {
     setPendingBytes(null);
     setPhase('loading');
     setError('');
@@ -112,11 +119,16 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
 
       if (email.isPasswordProtected) {
         setSource({ subject: email.subject, from: email.from, date: email.date });
-        if (email.wrongPassword) setError('Incorrect password — please try again.');
+        if (email.wrongPassword && fromStore) {
+          clearPassword(account.id);
+        } else if (email.wrongPassword) {
+          setError('Incorrect password — please try again.');
+        }
         setPhase('locked');
         return;
       }
 
+      if (password) storePassword(account.id, password);
       processText(email.text, { subject: email.subject, from: email.from, date: email.date });
     } catch (err) {
       clearToken();
@@ -125,13 +137,18 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
     }
   };
 
+  const handleAnalyzeGmail = async () => {
+    const stored = await loadPassword(account.id);
+    analyzeGmail(stored || '', Boolean(stored));
+  };
+
   // ── Unlock (password retry for whichever path is pending) ───────────────────
   const unlock = () => {
     if (!pdfPassword) return;
     if (pendingBytes) {
-      analyzeBytes(pendingBytes, pdfPassword);
+      analyzeBytes(pendingBytes, pdfPassword, false);
     } else {
-      analyzeGmail(pdfPassword);
+      analyzeGmail(pdfPassword, false);
     }
   };
 
@@ -171,7 +188,7 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
         {phase === 'idle' && (
           <div style={{ display: 'flex', gap: 8 }}>
             {CLIENT_ID && (
-              <button type="button" onClick={() => analyzeGmail()}
+              <button type="button" onClick={handleAnalyzeGmail}
                 style={btnStyle}
                 onMouseEnter={e => btnHover(e, true)}
                 onMouseLeave={e => btnHover(e, false)}
