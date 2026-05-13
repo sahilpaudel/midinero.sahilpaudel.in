@@ -27,12 +27,7 @@ function cacheToken(token, expiresIn = 3599) {
   } catch { /* quota */ }
 }
 
-function wasRecentlyAuthed() {
-  return Date.now() - Number(localStorage.getItem(LAST_AUTH_KEY) || 0) < 86400000; // 24 h
-}
 
-// Clears the active token but keeps the lastAuthTime so silent refresh is
-// still attempted before falling back to the OAuth popup.
 export function clearToken() {
   sessionStorage.removeItem(TOKEN_CACHE_KEY);
 }
@@ -40,16 +35,6 @@ export function clearToken() {
 export async function getToken(clientId) {
   const cached = getCachedToken();
   if (cached) return cached;
-
-  // Within 24 h of last auth: try a silent token refresh (no popup).
-  if (wasRecentlyAuthed()) {
-    try {
-      const { token, expiresIn } = await _requestToken(clientId, true);
-      cacheToken(token, expiresIn);
-      return token;
-    } catch { /* silent failed — fall through to interactive */ }
-  }
-
   const { token, expiresIn } = await _requestToken(clientId, false);
   cacheToken(token, expiresIn);
   return token;

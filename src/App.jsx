@@ -3,11 +3,13 @@ import { ACCOUNT_TYPES } from './lib/accountTypes.js';
 import { mergeImportedAccounts } from './lib/importMerge.js';
 import { loadAccounts, saveAccounts } from './lib/storage.js';
 import { loadStatement, loadStatements } from './lib/statementStore.js';
+import { loadMembers, saveMembers } from './lib/membersStore.js';
 import TopBar from './components/TopBar.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import Footer from './components/Footer.jsx';
 import TypePicker from './components/TypePicker.jsx';
 import AccountModal from './components/AccountModal.jsx';
+import FamilyModal from './components/FamilyModal.jsx';
 import Dashboard from './views/Dashboard.jsx';
 import AccountsView from './views/AccountsView.jsx';
 import ImportView from './views/ImportView.jsx';
@@ -17,10 +19,12 @@ import SubscriptionsView from './views/SubscriptionsView.jsx';
 
 export default function App() {
   const [accounts, setAccounts] = useState(loadAccounts);
+  const [members,  setMembers]  = useState(loadMembers);
   const [view, setView] = useState('dashboard'); // 'dashboard' | 'accounts' | 'subscriptions' | 'import' | 'statements' | 'statement'
   const [statementId, setStatementId] = useState(null);
   const [modal, setModal] = useState(null);      // { type, accountId: string|null } | null
   const [picker, setPicker] = useState(false);
+  const [familyModal, setFamilyModal] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
 
   const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
@@ -29,6 +33,7 @@ export default function App() {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem('theme', theme);
   }, [theme]);
+
 
   const openReport = (id) => {
     setStatementId(id);
@@ -63,6 +68,28 @@ export default function App() {
       .reduce((s, a) => s + effectiveBalance(a), 0);
     return { assets, liabs, net: assets - liabs };
   }, [accounts]);
+
+  const memberTotals = useMemo(() => {
+    if (!members.length) return [];
+    const stmtByAccount = {};
+    for (const s of loadStatements()) {
+      if (s.accountId && !stmtByAccount[s.accountId]) stmtByAccount[s.accountId] = s;
+    }
+    const effectiveBal = (a) => {
+      if (a.type === 'creditCard') {
+        if (a.balance != null && a.balance !== '') return Number(a.balance);
+        return stmtByAccount[a.id]?.summary?.totalDue ?? 0;
+      }
+      return Number(a.balance) || 0;
+    };
+    return members.map((m, i) => {
+      // First member owns all unattributed (ownerId null/undefined) accounts too.
+      const mine = accounts.filter(a => a.ownerId === m.id || (i === 0 && !a.ownerId));
+      const assets = mine.filter(a => ACCOUNT_TYPES[a.type]?.kind === 'asset').reduce((s, a) => s + effectiveBal(a), 0);
+      const liabs  = mine.filter(a => ACCOUNT_TYPES[a.type]?.kind === 'liability').reduce((s, a) => s + effectiveBal(a), 0);
+      return { member: m, assets, liabs, net: assets - liabs };
+    });
+  }, [accounts, members]);
 
   const upsert = (acc) => {
     setAccounts((prev) => {
@@ -101,14 +128,18 @@ export default function App() {
           <Dashboard
             totals={totals}
             accounts={accounts}
+            members={members}
+            memberTotals={memberTotals}
             onAdd={() => setPicker(true)}
             onEdit={openEdit}
             onImport={() => setView('import')}
+            onManageFamily={() => setFamilyModal(true)}
           />
         )}
         {view === 'accounts' && (
           <AccountsView
             accounts={accounts}
+            members={members}
             onAdd={() => setPicker(true)}
             onEdit={openEdit}
           />
@@ -140,6 +171,7 @@ export default function App() {
         {view === 'statement' && statementId && (
           <StatementReportView
             report={loadStatement(statementId)}
+            accounts={accounts}
             onBack={() => setView('statements')}
             onDelete={() => { setStatementId(null); setView('statements'); }}
           />
@@ -155,6 +187,7 @@ export default function App() {
         <AccountModal
           type={modal.type}
           account={modal.accountId ? accounts.find(a => a.id === modal.accountId) ?? null : null}
+          members={members}
           onClose={() => setModal(null)}
           onSave={(data) => {
             upsert(data);
@@ -166,6 +199,13 @@ export default function App() {
           }}
           onUpdate={(data) => upsert(data)}
           onViewReport={openReport}
+        />
+      )}
+      {familyModal && (
+        <FamilyModal
+          members={members}
+          onClose={() => setFamilyModal(false)}
+          onChange={(updated) => setMembers(updated)}
         />
       )}
     </div>

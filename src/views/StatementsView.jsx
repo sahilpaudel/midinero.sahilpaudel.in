@@ -3,6 +3,7 @@ import { loadStatements } from '../lib/statementStore.js';
 import { fmtINR } from '../lib/format.js';
 import { CATEGORY_COLORS } from '../lib/categorize.js';
 import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
+import { detectMethod, groupByMethod, METHOD_ORDER, METHOD_COLORS } from '../lib/paymentMethod.js';
 import StatementAnalysis from '../components/StatementAnalysis.jsx';
 import ModalShell from '../components/ModalShell.jsx';
 
@@ -104,7 +105,7 @@ export default function StatementsView({ onOpen, accounts = [], onAccountUpdate 
             </div>
           </div>
           <div className="modal-body">
-            <SpendingInsights statements={statements} />
+            <SpendingInsights statements={statements} accounts={accounts} />
           </div>
         </ModalShell>
       )}
@@ -194,7 +195,7 @@ function StatementSection({ label, list, onOpen, accounts, onAccountUpdate }) {
 
 const DAY_KEYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function SpendingInsights({ statements }) {
+function SpendingInsights({ statements, accounts = [] }) {
   const [tab, setTab] = React.useState('overview');
 
   const eligible = statements.filter(
@@ -228,9 +229,32 @@ function SpendingInsights({ statements }) {
   }
   const maxDay = Math.max(...Object.values(dayMap));
 
+  // Build a per-transaction lookup of which account the statement belongs to,
+  // so self-transfer detection can exclude the source account when matching.
+  const txnAccountId = new Map();
+  for (const s of eligible) {
+    for (const t of s.transactions || []) {
+      txnAccountId.set(t, s.accountId);
+    }
+  }
+  const methodMap = (() => {
+    const map = {};
+    for (const t of debits) {
+      const m = detectMethod(t, accounts, txnAccountId.get(t) || null);
+      if (!map[m]) map[m] = { count: 0, total: 0 };
+      map[m].count++;
+      map[m].total += t.amount;
+    }
+    return map;
+  })();
+  const methodRows = METHOD_ORDER
+    .filter(m => methodMap[m])
+    .map(m => ({ method: m, ...methodMap[m], pct: (methodMap[m].total / totalSpend) * 100 }));
+
   const tabs = [
-    { k: 'overview', label: 'Overview' },
-    { k: 'categories', label: 'Categories' },
+    { k: 'overview',  label: 'Overview' },
+    { k: 'categories',label: 'Categories' },
+    { k: 'modes',     label: 'Payment modes' },
     ...(hasDates && maxDay > 0 ? [{ k: 'trend', label: 'Trend' }] : []),
   ];
 
@@ -271,7 +295,7 @@ function SpendingInsights({ statements }) {
               ? <InsightHero label="Total inflow" value={fmtINR(totalIncome)} accent="var(--positive)" />
               : <InsightHero label="Transactions" value={String(debits.length)} accent="var(--text-dim)" />
             }
-            <InsightHero label="Top category" value={cats[0]?.category || '—'} accent={CATEGORY_COLORS[cats[0]?.category] || 'var(--text-dim)'} />
+            <InsightHero label="Top mode" value={methodRows[0]?.method || '—'} accent={METHOD_COLORS[methodRows[0]?.method] || 'var(--text-dim)'} />
           </div>
 
           {/* Net flow bar */}
@@ -368,6 +392,60 @@ function SpendingInsights({ statements }) {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Payment modes tab ── */}
+      {tab === 'modes' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Stacked bar */}
+          <div style={{ height: 8, borderRadius: 6, overflow: 'hidden', display: 'flex', gap: 1 }}>
+            {methodRows.map(r => (
+              <div
+                key={r.method}
+                style={{ flex: r.total / totalSpend, background: METHOD_COLORS[r.method] }}
+                title={`${r.method}: ${r.pct.toFixed(1)}%`}
+              />
+            ))}
+          </div>
+
+          {/* Rows */}
+          {methodRows.map(r => (
+            <div key={r.method}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-dim)' }}>
+                  <span style={{
+                    width: 10, height: 10, borderRadius: 3, flexShrink: 0,
+                    background: METHOD_COLORS[r.method],
+                    boxShadow: `0 0 7px ${METHOD_COLORS[r.method]}88`,
+                  }} />
+                  {r.method}
+                </span>
+                <span style={{ display: 'flex', gap: 12, alignItems: 'baseline' }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-faint)', fontVariantNumeric: 'tabular-nums' }}>
+                    {r.count} txn{r.count !== 1 ? 's' : ''} · {r.pct.toFixed(1)}%
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 500, fontVariantNumeric: 'tabular-nums', color: 'var(--text)', minWidth: 80, textAlign: 'right' }}>
+                    {fmtINR(r.total)}
+                  </span>
+                </span>
+              </div>
+              <div style={{ height: 5, borderRadius: 5, background: 'var(--line)', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', width: `${r.pct}%`, borderRadius: 5,
+                  background: `linear-gradient(90deg, ${METHOD_COLORS[r.method]}88, ${METHOD_COLORS[r.method]})`,
+                  boxShadow: `0 0 10px ${METHOD_COLORS[r.method]}55`,
+                  transition: 'width 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
+                }} />
+              </div>
+            </div>
+          ))}
+
+          {methodRows.length === 0 && (
+            <div style={{ fontSize: 12, color: 'var(--text-faint)', textAlign: 'center', padding: '16px 0' }}>
+              Could not classify transactions
+            </div>
+          )}
         </div>
       )}
 
@@ -509,8 +587,11 @@ function StatementCard({ s, onOpen, accounts = [], onAccountUpdate }) {
   };
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen(s.id)}
+      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onOpen(s.id)}
       style={{
         width: '100%', textAlign: 'left',
         padding: '16px 18px',
@@ -611,6 +692,43 @@ function StatementCard({ s, onOpen, accounts = [], onAccountUpdate }) {
         )}
       </div>
 
+      {/* Payment method breakdown */}
+      {debitTxns.length > 0 && (() => {
+        const methods = groupByMethod(debitTxns, accounts, s.accountId);
+        const total   = debitTxns.reduce((s, t) => s + t.amount, 0);
+        const ordered = METHOD_ORDER.filter(m => methods[m]);
+        if (!ordered.length) return null;
+        return (
+          <div style={{ marginBottom: 10 }}>
+            {/* Stacked bar */}
+            <div style={{ display: 'flex', height: 4, borderRadius: 4, overflow: 'hidden', gap: 1, marginBottom: 8 }}>
+              {ordered.map(m => (
+                <div
+                  key={m}
+                  style={{
+                    flex: methods[m].total / total,
+                    background: METHOD_COLORS[m],
+                    opacity: 0.85,
+                  }}
+                />
+              ))}
+            </div>
+            {/* Labels */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {ordered.map(m => (
+                <span key={m} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: 2, background: METHOD_COLORS[m], display: 'inline-block', flexShrink: 0 }} />
+                  <span style={{ color: 'var(--text-dim)', fontWeight: 500 }}>{m}</span>
+                  <span style={{ color: 'var(--text-faint)', fontVariantNumeric: 'tabular-nums' }}>
+                    {fmtINR(methods[m].total, { compact: true })}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {topCats.length > 0 && (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {topCats.map(([cat]) => (
@@ -635,6 +753,6 @@ function StatementCard({ s, onOpen, accounts = [], onAccountUpdate }) {
       {txns.length === 0 && (
         <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>Summary only · no transactions extracted</div>
       )}
-    </button>
+    </div>
   );
 }

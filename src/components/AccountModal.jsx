@@ -17,7 +17,7 @@ function fmtDueDate(iso) {
 // Bank and loan get Gmail balance sync; NPS gets statement analysis (PDF).
 const GMAIL_SYNC_TYPES = new Set(['bank', 'loan']);
 
-export default function AccountModal({ type, account, onClose, onSave, onDelete, onUpdate, onViewReport }) {
+export default function AccountModal({ type, account, members = [], onClose, onSave, onDelete, onUpdate, onViewReport }) {
   const meta = ACCOUNT_TYPES[type];
   const schema = FIELD_SCHEMAS[type] || [];
   const isEdit = !!account;
@@ -136,6 +136,38 @@ export default function AccountModal({ type, account, onClose, onSave, onDelete,
       </div>
 
       <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* Owner picker — only shown when family members are configured */}
+        {members.length > 0 && (
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+              Owner
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              {members.map((m, i) => {
+                const selected = data.ownerId === m.id || (i === 0 && !data.ownerId);
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setField('ownerId', i === 0 ? null : m.id)}
+                    style={{
+                      fontSize: 12, padding: '5px 11px 5px 8px',
+                      borderRadius: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                      border: `1px solid ${selected ? m.color : 'var(--line)'}`,
+                      background: selected ? `${m.color}22` : 'transparent',
+                      color: selected ? m.color : 'var(--text-dim)',
+                      fontWeight: selected ? 600 : 400,
+                    }}
+                  >
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: m.color, display: 'inline-block', flexShrink: 0 }} />
+                    {m.name}{i === 0 ? ' (you)' : ''}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {schema.map((f) => (
           <div key={f.k}>
             <Field field={f} value={data[f.k]} onChange={(v) => setField(f.k, v)} />

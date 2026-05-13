@@ -19,7 +19,12 @@ function getTypeTotal(accounts, type, stmtByAccount) {
   }, 0);
 }
 
-export default function AccountsView({ accounts, onAdd, onEdit }) {
+function resolveMember(account, members) {
+  if (members.length < 2) return null;
+  return members.find(m => m.id === account.ownerId) || (account.ownerId ? null : members[0]);
+}
+
+export default function AccountsView({ accounts, onAdd, onEdit, members = [] }) {
   const [filter, setFilter] = useState('all');
   const [q, setQ] = useState('');
 
@@ -176,15 +181,15 @@ export default function AccountsView({ accounts, onAdd, onEdit }) {
         // Flat search results
         <div className="list">
           {filtered.map((a) => (
-            <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} statement={stmtByAccount[a.id]} />
+            <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} statement={stmtByAccount[a.id]} member={resolveMember(a, members)} />
           ))}
         </div>
       ) : filter === 'liability' ? (
         // Liability-only grouped view
-        <TypeGroups groups={liabGroups} onEdit={onEdit} stmtByAccount={stmtByAccount} />
+        <TypeGroups groups={liabGroups} onEdit={onEdit} stmtByAccount={stmtByAccount} members={members} />
       ) : filter === 'asset' ? (
         // Asset-only grouped view
-        <TypeGroups groups={assetGroups} onEdit={onEdit} stmtByAccount={stmtByAccount} />
+        <TypeGroups groups={assetGroups} onEdit={onEdit} stmtByAccount={stmtByAccount} members={members} />
       ) : (
         // All — two top-level sections with type sub-groups
         <>
@@ -196,6 +201,7 @@ export default function AccountsView({ accounts, onAdd, onEdit }) {
               groups={assetGroups}
               onEdit={onEdit}
               stmtByAccount={stmtByAccount}
+              members={members}
             />
           )}
           {liabGroups.length > 0 && (
@@ -206,6 +212,7 @@ export default function AccountsView({ accounts, onAdd, onEdit }) {
               groups={liabGroups}
               onEdit={onEdit}
               stmtByAccount={stmtByAccount}
+              members={members}
             />
           )}
         </>
@@ -215,7 +222,7 @@ export default function AccountsView({ accounts, onAdd, onEdit }) {
 }
 
 /* ── Assets / Liabilities top-level divider ── */
-function KindSection({ label, accentColor, total, groups, onEdit, stmtByAccount }) {
+function KindSection({ label, accentColor, total, groups, onEdit, stmtByAccount, members }) {
   return (
     <div style={{ marginBottom: 36 }}>
       <div style={{
@@ -233,13 +240,13 @@ function KindSection({ label, accentColor, total, groups, onEdit, stmtByAccount 
           {fmtINR(total)}
         </span>
       </div>
-      <TypeGroups groups={groups} onEdit={onEdit} stmtByAccount={stmtByAccount} />
+      <TypeGroups groups={groups} onEdit={onEdit} stmtByAccount={stmtByAccount} members={members} />
     </div>
   );
 }
 
 /* ── Type sub-groups (e.g. Bank accounts, Mutual funds) ── */
-function TypeGroups({ groups, onEdit, stmtByAccount }) {
+function TypeGroups({ groups, onEdit, stmtByAccount, members = [] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {groups.map(({ type, items }) => {
@@ -286,7 +293,7 @@ function TypeGroups({ groups, onEdit, stmtByAccount }) {
             {/* Accounts in this type */}
             <div className="list">
               {items.map((a) => (
-                <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} statement={stmtByAccount[a.id]} />
+                <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} statement={stmtByAccount[a.id]} member={resolveMember(a, members)} />
               ))}
             </div>
           </div>

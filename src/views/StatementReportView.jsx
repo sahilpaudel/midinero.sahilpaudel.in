@@ -2,26 +2,41 @@ import React, { useMemo, useState } from 'react';
 import { fmtINR } from '../lib/format.js';
 import { ALL_CATEGORIES, CATEGORY_COLORS } from '../lib/categorize.js';
 import { deleteStatement } from '../lib/statementStore.js';
+import { detectMethod, METHOD_COLORS } from '../lib/paymentMethod.js';
 import { Icon } from '../icons/Icon.jsx';
 
-export default function StatementReportView({ report, onBack, onDelete }) {
-  const [filterCat, setFilterCat] = useState('All');
+export default function StatementReportView({ report, accounts = [], onBack, onDelete }) {
+  const [filterCat,  setFilterCat]  = useState('All');
+  const [filterSelf, setFilterSelf] = useState(false);
   const [search, setSearch] = useState('');
 
-  const { transactions = [], summary = {}, source = {}, accountNickname, accountType } = report;
+  const { transactions = [], summary = {}, source = {}, accountNickname, accountType, accountId } = report;
 
-  // Category totals (debits only for spending breakdown)
+  // Annotate each transaction with its detected payment method
+  const annotated = useMemo(() =>
+    transactions.map(t => ({
+      ...t,
+      paymentMethod: detectMethod(t, accounts, accountId || report.accountId),
+    })),
+  [transactions, accounts, accountId, report.accountId]);
+
+  const selfTransferCount = useMemo(
+    () => annotated.filter(t => t.type === 'debit' && t.paymentMethod === 'Self Transfer').length,
+    [annotated]
+  );
+
+  // Category totals (debits only, excluding self-transfers from spend breakdown)
   const catTotals = useMemo(() => {
     const map = {};
-    for (const t of transactions) {
-      if (t.type === 'debit') {
+    for (const t of annotated) {
+      if (t.type === 'debit' && t.paymentMethod !== 'Self Transfer') {
         map[t.category] = (map[t.category] || 0) + t.amount;
       }
     }
     return Object.entries(map)
       .sort((a, b) => b[1] - a[1])
       .map(([category, total]) => ({ category, total }));
-  }, [transactions]);
+  }, [annotated]);
 
   const maxCatTotal = catTotals[0]?.total || 1;
 
@@ -32,12 +47,13 @@ export default function StatementReportView({ report, onBack, onDelete }) {
 
   // Filtered transaction list
   const visible = useMemo(() => {
-    return transactions.filter(t => {
+    return annotated.filter(t => {
+      if (filterSelf && t.paymentMethod !== 'Self Transfer') return false;
       if (filterCat !== 'All' && t.category !== filterCat) return false;
       if (search && !t.description.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [transactions, filterCat, search]);
+  }, [annotated, filterCat, filterSelf, search]);
 
   const handleDelete = () => {
     deleteStatement(report.id);
@@ -139,8 +155,25 @@ export default function StatementReportView({ report, onBack, onDelete }) {
       {transactions.length > 0 && (
         <section style={{ marginTop: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>
-              Transactions ({visible.length}{filterCat !== 'All' || search ? ` of ${transactions.length}` : ''})
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>
+                Transactions ({visible.length}{filterCat !== 'All' || filterSelf || search ? ` of ${annotated.length}` : ''})
+              </div>
+              {selfTransferCount > 0 && (
+                <button
+                  onClick={() => { setFilterSelf(f => !f); setFilterCat('All'); }}
+                  style={{
+                    fontSize: 10.5, padding: '2px 8px', borderRadius: 5, cursor: 'pointer',
+                    border: `1px solid ${filterSelf ? METHOD_COLORS['Self Transfer'] : 'var(--line)'}`,
+                    background: filterSelf ? METHOD_COLORS['Self Transfer'] + '22' : 'transparent',
+                    color: filterSelf ? METHOD_COLORS['Self Transfer'] : 'var(--text-faint)',
+                    display: 'flex', alignItems: 'center', gap: 5,
+                  }}
+                >
+                  <span style={{ width: 6, height: 6, borderRadius: 2, background: METHOD_COLORS['Self Transfer'], display: 'inline-block' }} />
+                  Self transfers ({selfTransferCount})
+                </button>
+              )}
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {filterCat !== 'All' && (
@@ -217,6 +250,19 @@ export default function StatementReportView({ report, onBack, onDelete }) {
                   >
                     {t.category}
                   </span>
+
+                  {/* Self transfer badge */}
+                  {t.paymentMethod === 'Self Transfer' && (
+                    <span style={{
+                      fontSize: 10, padding: '2px 7px', borderRadius: 5,
+                      background: METHOD_COLORS['Self Transfer'] + '22',
+                      color: METHOD_COLORS['Self Transfer'],
+                      border: `1px solid ${METHOD_COLORS['Self Transfer']}44`,
+                      flexShrink: 0,
+                    }}>
+                      Self transfer
+                    </span>
+                  )}
 
                   {/* Amount */}
                   <span style={{

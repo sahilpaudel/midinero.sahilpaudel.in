@@ -7,8 +7,9 @@ import StatCard from '../components/StatCard.jsx';
 import SectionHeader from '../components/SectionHeader.jsx';
 import Composition from '../components/Composition.jsx';
 import AccountRow from '../components/AccountRow.jsx';
+import FamilyBar from '../components/FamilyBar.jsx';
 
-export default function Dashboard({ totals, accounts, onAdd, onEdit, onImport }) {
+export default function Dashboard({ totals, accounts, members = [], memberTotals = [], onAdd, onEdit, onImport, onManageFamily }) {
   if (accounts.length === 0) return <EmptyState onAdd={onAdd} />;
 
   const stmtByAccount = useMemo(() => {
@@ -87,6 +88,14 @@ export default function Dashboard({ totals, accounts, onAdd, onEdit, onImport })
               }} />
               {liabCount} {liabCount === 1 ? 'liability' : 'liabilities'}
             </span>
+            {members.length === 0 && onManageFamily && (
+              <button
+                onClick={onManageFamily}
+                style={{ fontSize: 12, color: 'var(--text-faint)', textDecoration: 'underline', textDecorationColor: 'var(--line)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                + Family view
+              </button>
+            )}
           </div>
         </div>
 
@@ -95,6 +104,11 @@ export default function Dashboard({ totals, accounts, onAdd, onEdit, onImport })
           <StatCard label="Liabilities" value={totals.liabs}  accent="var(--negative)" sign="−" />
         </div>
       </div>
+
+      {/* Family breakdown — only when members are configured */}
+      {memberTotals.length > 0 && (
+        <FamilyBar memberTotals={memberTotals} onManage={onManageFamily} />
+      )}
 
       {/* Composition + recent */}
       <div className="grid-12 mt-12">
@@ -106,9 +120,14 @@ export default function Dashboard({ totals, accounts, onAdd, onEdit, onImport })
         <section className="col-5">
           <SectionHeader title="Recent activity" caption="Last touched" />
           <div className="list">
-            {recent.map((a) => (
-              <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} compact statement={stmtByAccount[a.id]} />
-            ))}
+            {recent.map((a) => {
+              const owner = members.length > 1
+                ? (members.find(m => m.id === a.ownerId) || (a.ownerId ? null : members[0]))
+                : null;
+              return (
+                <AccountRow key={a.id} account={a} onClick={() => onEdit(a)} compact statement={stmtByAccount[a.id]} member={owner} />
+              );
+            })}
           </div>
         </section>
       </div>

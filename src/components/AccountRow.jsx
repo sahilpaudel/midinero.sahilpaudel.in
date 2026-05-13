@@ -80,7 +80,7 @@ function getContext(account, statement) {
   return null;
 }
 
-export default function AccountRow({ account, onClick, compact = false, statement }) {
+export default function AccountRow({ account, onClick, compact = false, statement, member }) {
   const meta = ACCOUNT_TYPES[account.type] || {};
   const isLiab = meta.kind === 'liability';
   const ctx = getContext(account, statement);
@@ -106,7 +106,19 @@ export default function AccountRow({ account, onClick, compact = false, statemen
         <Icon name={meta.icon} size={16} stroke={1.5} />
       </div>
       <div className="row-main">
-        <div className="row-title">{account.nickname || meta.label}</div>
+        <div className="row-title" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {account.nickname || meta.label}
+          {member && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 16, height: 16, borderRadius: '50%',
+              background: member.color, flexShrink: 0,
+              fontSize: 9, fontWeight: 700, color: '#fff',
+            }}>
+              {member.name[0]?.toUpperCase()}
+            </span>
+          )}
+        </div>
         <div className="row-sub">{subParts.join(' · ')}</div>
       </div>
       {ctx && !compact && (
