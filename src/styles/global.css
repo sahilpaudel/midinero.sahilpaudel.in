@@ -786,6 +786,13 @@ a { color: inherit; text-decoration: none; }
   /* section header */
   .section-title { font-size: 18px; }
 
-  /* footer: hide on mobile (bottom nav replaces it) */
-  .footer { display: none; }
+  /* footer: compact stacked layout on mobile, sits above bottom nav */
+  .footer { margin-top: 40px; }
+  .footer-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+    padding: 24px 20px calc(80px + env(safe-area-inset-bottom, 0px));
+  }
 }

@@ -24,21 +24,27 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-inner">
-        <div className="flex items-center gap-2">
-          <span style={{
-            width: 6, height: 6, borderRadius: '50%',
-            background: 'var(--positive)', display: 'inline-block',
-          }} />
-          All data stored locally · localStorage only
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className="flex items-center gap-2">
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: 'var(--positive)', display: 'inline-block',
+            }} />
+            All data stored locally · never leaves this device
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-faint)', opacity: 0.7 }}>
+            © {new Date().getFullYear()} MiDinero · v0.1
+          </div>
         </div>
-        <div className="flex items-center" style={{ gap: 16 }}>
-          {error && <span style={{ fontSize: 11, color: 'var(--negative)' }}>{error}</span>}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', gap: 16 }}>
+          {error && <span style={{ fontSize: 11, color: 'var(--negative)', width: '100%', textAlign: 'center' }}>{error}</span>}
           <button
             onClick={exportAllData}
             style={{ fontSize: 11, color: 'var(--text-faint)', textDecoration: 'underline', textDecorationColor: 'var(--line)' }}
           >
             Export backup
           </button>
+          <span style={{ color: 'var(--line)' }}>·</span>
           <button
             onClick={() => fileRef.current?.click()}
             disabled={importing}
@@ -47,7 +53,6 @@ export default function Footer() {
             {importing ? 'Importing…' : 'Import backup'}
           </button>
           <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleImport} />
-          <span style={{ color: 'var(--text-faint)' }}>v0.1 · web preview</span>
         </div>
       </div>
     </footer>
