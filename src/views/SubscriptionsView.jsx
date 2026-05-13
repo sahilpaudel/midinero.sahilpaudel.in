@@ -309,14 +309,14 @@ export default function SubscriptionsView() {
 
       {/* Summary strip */}
       {totals.monthly > 0 && (
-        <div style={{ display: 'flex', marginBottom: 28, border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', marginBottom: 28, border: '1px solid var(--line)', borderRadius: 10, overflow: 'hidden' }}>
           {[
             { label: 'Monthly spend',   value: fmtINR(Math.round(totals.monthly)), note: '/mo' },
             { label: 'Yearly spend',    value: fmtINR(Math.round(totals.yearly)),  note: '/yr' },
             { label: 'Active services', value: String(totals.activeCount),          note: null },
           ].map((item, i, arr) => (
             <div key={item.label} style={{
-              flex: 1, padding: '12px 18px',
+              flex: '1 1 90px', padding: '12px 18px',
               borderRight: i < arr.length - 1 ? '1px solid var(--line)' : 'none',
             }}>
               <div style={{ fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-faint)', marginBottom: 3 }}>
@@ -332,8 +332,8 @@ export default function SubscriptionsView() {
       )}
 
       {/* Search + filter */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28 }}>
-        <div className="search" style={{ flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, flexWrap: 'wrap' }}>
+        <div className="search" style={{ flex: 1, minWidth: 180 }}>
           <Icon name="search" size={14} stroke={1.5} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search subscriptions…" />
           {q && (

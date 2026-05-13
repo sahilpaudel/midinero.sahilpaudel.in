@@ -154,8 +154,8 @@ export default function StatementReportView({ report, accounts = [], onBack, onD
       {/* Transaction list */}
       {transactions.length > 0 && (
         <section style={{ marginTop: 28 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>
                 Transactions ({visible.length}{filterCat !== 'All' || filterSelf || search ? ` of ${annotated.length}` : ''})
               </div>
@@ -198,7 +198,7 @@ export default function StatementReportView({ report, accounts = [], onBack, onD
                   fontSize: 12, padding: '4px 10px',
                   border: '1px solid var(--line)', borderRadius: 8,
                   background: 'var(--surface)', color: 'var(--text)', outline: 'none',
-                  width: 140,
+                  width: 120, minWidth: 80,
                 }}
               />
             </div>
@@ -226,7 +226,7 @@ export default function StatementReportView({ report, accounts = [], onBack, onD
                   }} />
 
                   {/* Date */}
-                  <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0, minWidth: 70 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-faint)', flexShrink: 0 }}>
                     {t.date}
                   </span>
 

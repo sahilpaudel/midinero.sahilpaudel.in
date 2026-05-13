@@ -175,7 +175,7 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [], mem
             <Icon name="pdf" size={20} stroke={1.5} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
               <h3 style={{ fontSize: 15, margin: 0 }}>
                 Consolidated Account Statement (CAS)
               </h3>
@@ -211,7 +211,7 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [], mem
                       </button>
                     </div>
                   )}
-                  <div style={{ display: 'flex', gap: 10 }}>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                     <button className="btn-primary" onClick={() => inputRef.current?.click()}>
                       <Icon name="upload" size={14} stroke={1.6} /> Upload PDF
                     </button>
@@ -354,7 +354,7 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [], mem
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginBottom: 12, flexWrap: 'wrap' }}>
                       <button className="btn-ghost" onClick={reset}>
                         {imported ? 'Import another' : 'Cancel'}
                       </button>
