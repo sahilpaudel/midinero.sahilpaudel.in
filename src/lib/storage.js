@@ -1,4 +1,5 @@
 // All data stays on this device. localStorage only — no server, no telemetry.
+import { vaultGetRaw, vaultSetRaw, vaultRemove } from './vault.js';
 
 export function exportAllData() {
   const dump = {};
@@ -47,7 +48,7 @@ export function loadAccounts() {
     const typedAccounts = loadTypedAccounts();
     if (typedAccounts.length > 0) return sanitizeAccounts(typedAccounts);
 
-    const legacyAccounts = JSON.parse(localStorage.getItem(LEGACY_STORE_KEY) || '[]');
+    const legacyAccounts = JSON.parse(vaultGetRaw(LEGACY_STORE_KEY) || '[]');
     const migrated = sanitizeAccounts(legacyAccounts);
 
     if (migrated.length > 0) saveAccounts(migrated);
@@ -62,16 +63,16 @@ export function saveAccounts(list) {
   const grouped = groupByType(sanitized);
 
   TYPE_KEYS.forEach((type) => {
-    localStorage.setItem(typeStoreKey(type), JSON.stringify(grouped[type] || []));
+    vaultSetRaw(typeStoreKey(type), JSON.stringify(grouped[type] || []));
   });
 
-  localStorage.removeItem(LEGACY_STORE_KEY);
+  vaultRemove(LEGACY_STORE_KEY);
 }
 
 function loadTypedAccounts() {
   const accounts = TYPE_KEYS.flatMap((type) => {
     try {
-      const stored = JSON.parse(localStorage.getItem(typeStoreKey(type)) || '[]');
+      const stored = JSON.parse(vaultGetRaw(typeStoreKey(type)) || '[]');
       return Array.isArray(stored)
         ? stored.map((account) => ({ ...account, type: account.type || type }))
         : [];
@@ -85,7 +86,7 @@ function loadTypedAccounts() {
   // Migrate from old ledger.v2.* keys on first load after rename.
   const migrated = TYPE_KEYS.flatMap((type) => {
     try {
-      const stored = JSON.parse(localStorage.getItem(`${LEGACY_V2_PREFIX}${type}`) || '[]');
+      const stored = JSON.parse(vaultGetRaw(`${LEGACY_V2_PREFIX}${type}`) || '[]');
       return Array.isArray(stored)
         ? stored.map((account) => ({ ...account, type: account.type || type }))
         : [];

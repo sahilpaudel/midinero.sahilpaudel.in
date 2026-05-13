@@ -1,3 +1,5 @@
+import { vaultGetRaw, vaultSetRaw } from './vault.js';
+
 const LEGACY_KEY = 'ledger.v2.statements';
 const KEY        = 'midinero.v2.statements';
 
@@ -21,16 +23,15 @@ export function saveStatement(record) {
     all.unshift(record);
   }
 
-  try { localStorage.setItem(KEY, JSON.stringify(all.slice(0, 100))); } catch { /* quota */ }
+  try { vaultSetRaw(KEY, JSON.stringify(all.slice(0, 100))); } catch { /* quota */ }
   return record;
 }
 
 export function loadStatements() {
   try {
-    const data = localStorage.getItem(KEY);
+    const data = vaultGetRaw(KEY);
     if (data) return JSON.parse(data);
-    // Migrate from old ledger.v2.statements key on first load after rename.
-    const legacy = localStorage.getItem(LEGACY_KEY);
+    const legacy = vaultGetRaw(LEGACY_KEY);
     return legacy ? JSON.parse(legacy) : [];
   } catch { return []; }
 }
@@ -41,5 +42,5 @@ export function loadStatement(id) {
 
 export function deleteStatement(id) {
   const all = loadStatements().filter(r => r.id !== id);
-  try { localStorage.setItem(KEY, JSON.stringify(all)); } catch { /* quota */ }
+  try { vaultSetRaw(KEY, JSON.stringify(all)); } catch { /* quota */ }
 }

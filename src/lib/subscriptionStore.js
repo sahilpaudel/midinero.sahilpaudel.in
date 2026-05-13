@@ -1,10 +1,12 @@
+import { vaultGetRaw, vaultSetRaw } from './vault.js';
+
 const KEY = 'midinero_subscriptions';
 
 export function loadSubscriptions() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || []; }
+  try { return JSON.parse(vaultGetRaw(KEY)) || []; }
   catch { return []; }
 }
 
 export function saveSubscriptions(subs) {
-  localStorage.setItem(KEY, JSON.stringify(subs));
+  vaultSetRaw(KEY, JSON.stringify(subs));
 }

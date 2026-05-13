@@ -1,3 +1,5 @@
+import { vaultGetRaw, vaultSetRaw } from './vault.js';
+
 const KEY = 'midinero.v2.members';
 
 const COLORS = [
@@ -7,13 +9,13 @@ const COLORS = [
 
 export function loadMembers() {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = vaultGetRaw(KEY);
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
 export function saveMembers(members) {
-  localStorage.setItem(KEY, JSON.stringify(members));
+  vaultSetRaw(KEY, JSON.stringify(members));
 }
 
 export function memberColor(index) {
