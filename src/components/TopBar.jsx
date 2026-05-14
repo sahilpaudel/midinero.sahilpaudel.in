@@ -6,9 +6,10 @@ const TABS = [
   { k: 'accounts',      label: 'Accounts' },
   { k: 'subscriptions', label: 'Subscriptions' },
   { k: 'statements',    label: 'Statements' },
+  { k: 'about',         label: 'About' },
 ];
 
-export default function TopBar({ view, setView, onAdd, hasAny, theme, onToggleTheme }) {
+export default function TopBar({ view, setView, onAdd, theme, onToggleTheme }) {
   return (
     <header className="topbar backdrop">
       <div className="topbar-inner">
@@ -22,6 +23,7 @@ export default function TopBar({ view, setView, onAdd, hasAny, theme, onToggleTh
             {TABS.map((t) => (
               <button
                 key={t.k}
+                id={`tour-tab-${t.k}`}
                 className={`tab ${view === t.k || (t.k === 'statements' && view === 'statement') ? 'active' : ''}`}
                 onClick={() => setView(t.k)}
               >
@@ -51,11 +53,9 @@ export default function TopBar({ view, setView, onAdd, hasAny, theme, onToggleTh
           >
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={14} stroke={1.6} />
           </button>
-          {hasAny && (
-            <button className="btn-primary mobile-hidden" onClick={onAdd}>
-              <Icon name="plus" size={14} stroke={2} /> Add account
-            </button>
-          )}
+          <button id="tour-add" className="btn-primary mobile-hidden" onClick={onAdd}>
+            <Icon name="plus" size={14} stroke={2} /> Add account
+          </button>
         </div>
       </div>
     </header>

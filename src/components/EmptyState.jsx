@@ -2,7 +2,7 @@ import React from 'react';
 import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
 import { Icon } from '../icons/Icon.jsx';
 
-export default function EmptyState({ onAdd }) {
+export default function EmptyState({ onAdd, onManageFamily, onTour }) {
   return (
     <div className="pt-24 pb-24 fade">
       <div className="grid-12">
@@ -19,16 +19,41 @@ export default function EmptyState({ onAdd }) {
             Track every bank balance, card outstanding, fund folio and loan — all in one place.
             Stored on this device. Not a single byte leaves.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3" style={{ flexWrap: 'wrap' }}>
             <button className="btn-primary" onClick={onAdd}>
               Add your first account <Icon name="arrowRight" size={14} stroke={1.8} />
             </button>
+            {onManageFamily && (
+              <button
+                onClick={onManageFamily}
+                style={{
+                  fontSize: 13, color: 'var(--text-dim)',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  border: '1px solid var(--line)', borderRadius: 8,
+                  padding: '8px 14px', background: 'transparent',
+                }}
+              >
+                <Icon name="users" size={13} stroke={1.5} /> Manage family
+              </button>
+            )}
             <div style={{
               fontSize: 12, color: 'var(--text-faint)',
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
               <Icon name="lock" size={12} stroke={1.6} /> No sign-up · no cloud
             </div>
+            {onTour && (
+              <button
+                onClick={onTour}
+                style={{
+                  fontSize: 12, color: 'var(--text-faint)',
+                  textDecoration: 'underline', textDecorationColor: 'var(--line)',
+                  padding: 0, marginLeft: 4,
+                }}
+              >
+                Take the tour →
+              </button>
+            )}
           </div>
         </div>
 

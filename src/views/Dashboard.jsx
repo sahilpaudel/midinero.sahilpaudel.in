@@ -9,8 +9,8 @@ import Composition from '../components/Composition.jsx';
 import AccountRow from '../components/AccountRow.jsx';
 import FamilyBar from '../components/FamilyBar.jsx';
 
-export default function Dashboard({ totals, accounts, members = [], memberTotals = [], onAdd, onEdit, onImport, onManageFamily }) {
-  if (accounts.length === 0) return <EmptyState onAdd={onAdd} />;
+export default function Dashboard({ totals, accounts, members = [], memberTotals = [], onAdd, onEdit, onImport, onManageFamily, onTour }) {
+  if (accounts.length === 0) return <EmptyState onAdd={onAdd} onManageFamily={onManageFamily} onTour={onTour} />;
 
   const stmtByAccount = useMemo(() => {
     const map = {};

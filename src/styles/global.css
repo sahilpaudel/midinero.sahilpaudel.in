@@ -164,6 +164,13 @@ a { color: inherit; text-decoration: none; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ─── Tour spotlight ─── */
+@keyframes tour-pulse {
+  0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 0 0 2px var(--accent), 0 0 14px 2px rgba(212,255,58,0.22); }
+  50%       { box-shadow: 0 0 0 9999px rgba(0,0,0,0.72), 0 0 0 2px var(--accent), 0 0 22px 5px rgba(212,255,58,0.38); }
+}
+.tour-spotlight { animation: tour-pulse 2s ease-in-out infinite; }
+
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

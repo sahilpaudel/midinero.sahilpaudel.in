@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ModalShell from './ModalShell.jsx';
 import Field from './Field.jsx';
-import GmailSync from './GmailSync.jsx';
 import StatementAnalysis from './StatementAnalysis.jsx';
 import { ACCOUNT_TYPES, FIELD_SCHEMAS } from '../lib/accountTypes.js';
 import { fmtINR } from '../lib/format.js';
@@ -14,8 +13,6 @@ function fmtDueDate(iso) {
   return `${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]} ${y}`;
 }
 
-// Bank and loan get Gmail balance sync; NPS gets statement analysis (PDF).
-const GMAIL_SYNC_TYPES = new Set(['bank', 'loan']);
 
 export default function AccountModal({ type, account, members = [], onClose, onSave, onDelete, onUpdate, onViewReport }) {
   const meta = ACCOUNT_TYPES[type];
@@ -171,12 +168,6 @@ export default function AccountModal({ type, account, members = [], onClose, onS
         {schema.map((f) => (
           <div key={f.k}>
             <Field field={f} value={data[f.k]} onChange={(v) => setField(f.k, v)} />
-            {f.gmailSync && GMAIL_SYNC_TYPES.has(type) && (
-              <GmailSync
-                account={{ ...data, type }}
-                onBalance={(v) => setField('balance', v)}
-              />
-            )}
           </div>
         ))}
 
@@ -184,13 +175,9 @@ export default function AccountModal({ type, account, members = [], onClose, onS
         {type === 'bank' && (
           <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16 }}>
             <Field
-              field={{ k: 'balance', label: 'Current balance', type: 'number', prefix: '₹', hint: 'Optional — you can also sync from Gmail' }}
+              field={{ k: 'balance', label: 'Current balance', type: 'number', prefix: '₹', hint: 'Optional' }}
               value={data.balance || ''}
               onChange={v => setField('balance', v)}
-            />
-            <GmailSync
-              account={{ ...data, type }}
-              onBalance={v => setField('balance', v)}
             />
           </div>
         )}

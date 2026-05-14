@@ -97,8 +97,7 @@ export const FIELD_SCHEMAS = {
     { k: 'principal', label: 'Principal sanctioned',   type: 'number', prefix: '₹' },
     { k: 'rate',      label: 'Interest rate (% p.a.)', type: 'number', step: '0.01' },
     { k: 'emi',       label: 'EMI',                    type: 'number', prefix: '₹' },
-    { k: 'balance',   label: 'Outstanding amount',     type: 'number', prefix: '₹', gmailSync: true,
-      hint: 'Leave blank to sync from Gmail' },
+    { k: 'balance',   label: 'Outstanding amount',     type: 'number', prefix: '₹' },
     { k: 'endDate',   label: 'Tenure ends',            type: 'date' },
   ],
 };

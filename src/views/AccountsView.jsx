@@ -3,7 +3,6 @@ import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
 import { fmtINR } from '../lib/format.js';
 import { Icon } from '../icons/Icon.jsx';
 import AccountRow from '../components/AccountRow.jsx';
-import EmptyState from '../components/EmptyState.jsx';
 import { loadStatements } from '../lib/statementStore.js';
 
 // Ordered type keys as defined in ACCOUNT_TYPES
@@ -24,8 +23,9 @@ function resolveMember(account, members) {
   return members.find(m => m.id === account.ownerId) || (account.ownerId ? null : members[0]);
 }
 
-export default function AccountsView({ accounts, onAdd, onEdit, members = [] }) {
+export default function AccountsView({ accounts, onAdd, onEdit, onManageFamily, members = [] }) {
   const [filter, setFilter] = useState('all');
+  const [memberFilter, setMemberFilter] = useState('all');
   const [q, setQ] = useState('');
 
   const stmtByAccount = useMemo(() => {
@@ -53,6 +53,14 @@ export default function AccountsView({ accounts, onAdd, onEdit, members = [] }) 
     return accounts.filter((a) => {
       const meta = ACCOUNT_TYPES[a.type];
       if (filter !== 'all' && meta?.kind !== filter) return false;
+      if (memberFilter !== 'all') {
+        const isDefault = members.length > 0 && memberFilter === members[0].id;
+        if (isDefault) {
+          if (a.ownerId && a.ownerId !== memberFilter) return false;
+        } else {
+          if (a.ownerId !== memberFilter) return false;
+        }
+      }
       if (q) {
         const haystack = `${a.nickname} ${a.institution || ''} ${a.issuer || ''} ${
           a.amc || ''
@@ -61,7 +69,7 @@ export default function AccountsView({ accounts, onAdd, onEdit, members = [] }) 
       }
       return true;
     });
-  }, [accounts, filter, q]);
+  }, [accounts, filter, memberFilter, members, q]);
 
   const assetCount = accounts.filter(a => ACCOUNT_TYPES[a.type]?.kind === 'asset').length;
   const liabCount  = accounts.filter(a => ACCOUNT_TYPES[a.type]?.kind === 'liability').length;
@@ -82,7 +90,51 @@ export default function AccountsView({ accounts, onAdd, onEdit, members = [] }) 
 
   const isGrouped = !q; // group whenever not searching
 
-  if (accounts.length === 0) return <EmptyState onAdd={onAdd} />;
+  if (accounts.length === 0) {
+    return (
+      <div className="pt-14 pb-24 fade">
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32 }}>
+          <div>
+            <div className="eyebrow mb-3">All accounts</div>
+            <h1 style={{ fontFamily: 'Fraunces, serif', fontSize: 40, letterSpacing: '-0.03em', lineHeight: 1, margin: 0 }}>
+              0
+              <span style={{ fontSize: 22, letterSpacing: '-0.01em', color: 'var(--text-dim)', marginLeft: 10 }}>accounts</span>
+            </h1>
+          </div>
+          <button className="btn-primary" onClick={onAdd}>
+            <Icon name="plus" size={14} stroke={2} /> Add new
+          </button>
+        </div>
+        <div style={{
+          padding: '64px 24px', textAlign: 'center',
+          borderTop: '1px solid var(--line)',
+        }}>
+          <div style={{ fontSize: 15, color: 'var(--text-dim)', marginBottom: 10 }}>No accounts yet</div>
+          <p style={{ fontSize: 13, color: 'var(--text-faint)', lineHeight: 1.6, maxWidth: 320, margin: '0 auto 28px' }}>
+            Add your first account to start tracking your finances.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <button className="btn-primary" onClick={onAdd}>
+              <Icon name="plus" size={14} stroke={2} /> Add account
+            </button>
+            {onManageFamily && (
+              <button
+                onClick={onManageFamily}
+                style={{
+                  fontSize: 13, color: 'var(--text-dim)',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  border: '1px solid var(--line)', borderRadius: 8,
+                  padding: '8px 14px', background: 'transparent',
+                }}
+              >
+                <Icon name="users" size={13} stroke={1.5} /> Manage family
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-14 pb-24 fade">
@@ -139,30 +191,55 @@ export default function AccountsView({ accounts, onAdd, onEdit, members = [] }) 
       )}
 
       {/* ── Search + filter ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 28, flexWrap: 'wrap' }}>
-        <div className="search" style={{ flex: 1, minWidth: 180 }}>
-          <Icon name="search" size={14} stroke={1.5} />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search accounts, banks, funds…"
-          />
-          {q && (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <div className="search" style={{ flex: 1, minWidth: 180 }}>
+            <Icon name="search" size={14} stroke={1.5} />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search accounts, banks, funds…"
+            />
+            {q && (
+              <button
+                onClick={() => setQ('')}
+                style={{ color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <div className="chips">
+            {[['all', 'All'], ['asset', 'Assets'], ['liability', 'Liabilities']].map(([k, label]) => (
+              <button key={k} className={`chip ${filter === k ? 'active' : ''}`} onClick={() => setFilter(k)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {members.length >= 2 && (
+          <div className="chips">
             <button
-              onClick={() => setQ('')}
-              style={{ color: 'var(--text-faint)', fontSize: 18, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
+              className={`chip ${memberFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setMemberFilter('all')}
             >
-              ×
+              All members
             </button>
-          )}
-        </div>
-        <div className="chips">
-          {[['all', 'All'], ['asset', 'Assets'], ['liability', 'Liabilities']].map(([k, label]) => (
-            <button key={k} className={`chip ${filter === k ? 'active' : ''}`} onClick={() => setFilter(k)}>
-              {label}
-            </button>
-          ))}
-        </div>
+            {members.map((m) => (
+              <button
+                key={m.id}
+                className={`chip ${memberFilter === m.id ? 'active' : ''}`}
+                onClick={() => setMemberFilter(m.id)}
+              >
+                <span style={{
+                  display: 'inline-block', width: 7, height: 7,
+                  borderRadius: '50%', background: m.color, marginRight: 5,
+                }} />
+                {m.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Account list ── */}
@@ -171,11 +248,18 @@ export default function AccountsView({ accounts, onAdd, onEdit, members = [] }) 
           <div style={{ fontSize: 13, color: 'var(--text-faint)', marginBottom: 10 }}>
             No accounts match{q ? ` "${q}"` : ' this filter'}.
           </div>
-          {q && (
-            <button onClick={() => setQ('')} style={{ fontSize: 12, color: 'var(--accent-text)' }}>
-              Clear search
-            </button>
-          )}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+            {q && (
+              <button onClick={() => setQ('')} style={{ fontSize: 12, color: 'var(--accent-text)' }}>
+                Clear search
+              </button>
+            )}
+            {memberFilter !== 'all' && (
+              <button onClick={() => setMemberFilter('all')} style={{ fontSize: 12, color: 'var(--accent-text)' }}>
+                Clear member filter
+              </button>
+            )}
+          </div>
         </div>
       ) : !isGrouped ? (
         // Flat search results

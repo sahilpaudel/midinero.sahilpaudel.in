@@ -16,6 +16,7 @@ export default function BottomNav({ view, setView, onAdd }) {
       {TABS.slice(0, 2).map((tab) => (
         <button
           key={tab.k}
+          id={`tour-bnav-${tab.k}`}
           className={`bottom-nav-item ${isActive(tab.k) ? 'active' : ''}`}
           onClick={() => setView(tab.k)}
         >
@@ -24,13 +25,14 @@ export default function BottomNav({ view, setView, onAdd }) {
         </button>
       ))}
 
-      <button className="bottom-nav-fab" onClick={onAdd} aria-label="Add account">
+      <button id="tour-add-mobile" className="bottom-nav-fab" onClick={onAdd} aria-label="Add account">
         <Icon name="plus" size={18} stroke={2} />
       </button>
 
       {TABS.slice(2).map((tab) => (
         <button
           key={tab.k}
+          id={`tour-bnav-${tab.k}`}
           className={`bottom-nav-item ${isActive(tab.k) ? 'active' : ''}`}
           onClick={() => setView(tab.k)}
         >

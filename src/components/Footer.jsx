@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { exportAllData, importAllData } from '../lib/storage.js';
 
-export default function Footer() {
+export default function Footer({ onAbout }) {
   const fileRef = useRef();
   const [importing, setImporting] = useState(false);
   const [error, setError]         = useState('');
@@ -38,6 +38,17 @@ export default function Footer() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', gap: 16 }}>
           {error && <span style={{ fontSize: 11, color: 'var(--negative)', width: '100%', textAlign: 'center' }}>{error}</span>}
+          {onAbout && (
+            <>
+              <button
+                onClick={onAbout}
+                style={{ fontSize: 11, color: 'var(--text-faint)', textDecoration: 'underline', textDecorationColor: 'var(--line)' }}
+              >
+                About
+              </button>
+              <span style={{ color: 'var(--line)' }}>·</span>
+            </>
+          )}
           <button
             onClick={exportAllData}
             style={{ fontSize: 11, color: 'var(--text-faint)', textDecoration: 'underline', textDecorationColor: 'var(--line)' }}

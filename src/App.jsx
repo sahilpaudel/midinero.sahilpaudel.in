@@ -11,6 +11,8 @@ import TypePicker from './components/TypePicker.jsx';
 import AccountModal from './components/AccountModal.jsx';
 import FamilyModal from './components/FamilyModal.jsx';
 import Dashboard from './views/Dashboard.jsx';
+import AboutView from './views/AboutView.jsx';
+import Tour from './components/Tour.jsx';
 import AccountsView from './views/AccountsView.jsx';
 import ImportView from './views/ImportView.jsx';
 import StatementsView from './views/StatementsView.jsx';
@@ -24,6 +26,7 @@ const HASH_TO_VIEW = {
   'subscriptions': 'subscriptions',
   'statements':    'statements',
   'import':        'import',
+  'about':         'about',
 };
 const VIEW_TO_HASH = {
   dashboard:      '',
@@ -31,6 +34,7 @@ const VIEW_TO_HASH = {
   subscriptions:  'subscriptions',
   statements:     'statements',
   import:         'import',
+  about:          'about',
 };
 
 function parseHash() {
@@ -58,6 +62,9 @@ export default function App() {
   const [picker, setPicker] = useState(false);
   const [familyModal, setFamilyModal] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [showTour, setShowTour] = useState(
+    () => !localStorage.getItem('tour_seen') && loadAccounts().length === 0
+  );
 
   const view        = location.view;
   const statementId = location.statementId;
@@ -166,7 +173,6 @@ export default function App() {
         view={view}
         setView={setView}
         onAdd={() => setPicker(true)}
-        hasAny={accounts.length > 0}
         theme={theme}
         onToggleTheme={toggleTheme}
       />
@@ -182,6 +188,7 @@ export default function App() {
             onEdit={openEdit}
             onImport={() => setView('import')}
             onManageFamily={() => setFamilyModal(true)}
+            onTour={() => setShowTour(true)}
           />
         )}
         {view === 'accounts' && (
@@ -190,6 +197,7 @@ export default function App() {
             members={members}
             onAdd={() => setPicker(true)}
             onEdit={openEdit}
+            onManageFamily={() => setFamilyModal(true)}
           />
         )}
         {view === 'import' && (
@@ -225,9 +233,10 @@ export default function App() {
             onDelete={() => navigate('statements')}
           />
         )}
+        {view === 'about' && <AboutView onNavigate={navigate} />}
       </main>
 
-      <Footer />
+      <Footer onAbout={() => navigate('about')} />
 
       <BottomNav view={view} setView={setView} onAdd={() => setPicker(true)} />
 
@@ -264,6 +273,7 @@ export default function App() {
           onChange={(updated) => setMembers(updated)}
         />
       )}
+      {showTour && <Tour onDone={() => setShowTour(false)} />}
     </div>
   );
 }
