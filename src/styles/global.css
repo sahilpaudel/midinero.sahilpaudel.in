@@ -69,6 +69,7 @@ body {
   padding: 0;
   min-height: 100%;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
   background: var(--ink);
   color: var(--text);
   font-family: 'Geist', system-ui, -apple-system, sans-serif;
@@ -755,11 +756,14 @@ a { color: inherit; text-decoration: none; }
 }
 .bottom-nav-fab:active { transform: scale(0.94); }
 
+.mobile-only { display: none !important; }
+
 /* ─── Mobile overrides ─── */
 @media (max-width: 640px) {
   .container { padding: 0 16px; }
   .topbar-inner { padding: 0 16px; gap: 12px; }
   .mobile-hidden { display: none !important; }
+  .mobile-only { display: flex !important; }
 
   /* push content above the fixed bottom nav */
   .pb-32 { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }

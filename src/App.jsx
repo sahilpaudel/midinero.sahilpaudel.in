@@ -175,6 +175,7 @@ export default function App() {
         onAdd={() => setPicker(true)}
         theme={theme}
         onToggleTheme={toggleTheme}
+        onAbout={() => navigate('about')}
       />
 
       <main className="container pb-32">

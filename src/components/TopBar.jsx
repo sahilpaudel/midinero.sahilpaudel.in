@@ -9,7 +9,7 @@ const TABS = [
   { k: 'about',         label: 'About' },
 ];
 
-export default function TopBar({ view, setView, onAdd, theme, onToggleTheme }) {
+export default function TopBar({ view, setView, onAdd, theme, onToggleTheme, onAbout }) {
   return (
     <header className="topbar backdrop">
       <div className="topbar-inner">
@@ -53,6 +53,23 @@ export default function TopBar({ view, setView, onAdd, theme, onToggleTheme }) {
           >
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={14} stroke={1.6} />
           </button>
+          {onAbout && (
+            <button
+              className="mobile-only"
+              onClick={onAbout}
+              title="About MiDinero"
+              style={{
+                width: 32, height: 32, borderRadius: 8,
+                border: '1px solid var(--line)',
+                background: 'transparent',
+                color: 'var(--text-dim)',
+                alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.2s ease', cursor: 'pointer',
+              }}
+            >
+              <Icon name="info" size={14} stroke={1.6} />
+            </button>
+          )}
           <button id="tour-add" className="btn-primary mobile-hidden" onClick={onAdd}>
             <Icon name="plus" size={14} stroke={2} /> Add account
           </button>
