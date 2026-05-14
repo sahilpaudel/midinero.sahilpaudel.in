@@ -168,76 +168,78 @@ export default function App() {
   const openEdit = (account) => setModal({ type: account.type, accountId: account.id });
 
   return (
-    <div className="app-shell grain">
-      <TopBar
-        view={view}
-        setView={setView}
-        onAdd={() => setPicker(true)}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        onAbout={() => navigate('about')}
-      />
+    <>
+      <div className="app-shell grain">
+        <TopBar
+          view={view}
+          setView={setView}
+          onAdd={() => setPicker(true)}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onAbout={() => navigate('about')}
+        />
 
-      <main className="container pb-32">
-        {view === 'dashboard' && (
-          <Dashboard
-            totals={totals}
-            accounts={accounts}
-            members={members}
-            memberTotals={memberTotals}
-            onAdd={() => setPicker(true)}
-            onEdit={openEdit}
-            onImport={() => setView('import')}
-            onManageFamily={() => setFamilyModal(true)}
-            onTour={() => setShowTour(true)}
-          />
-        )}
-        {view === 'accounts' && (
-          <AccountsView
-            accounts={accounts}
-            members={members}
-            onAdd={() => setPicker(true)}
-            onEdit={openEdit}
-            onManageFamily={() => setFamilyModal(true)}
-          />
-        )}
-        {view === 'import' && (
-          <ImportView
-            onAdd={() => setPicker(true)}
-            existingAccounts={accounts}
-            members={members}
-            onImport={(incoming, ownerId) => {
-              const result = mergeImportedAccounts(accounts, incoming, Date.now(), ownerId);
-              saveAccounts(result.accounts);
-              window.location.reload();
-              return result;
-            }}
-          />
-        )}
-        {view === 'subscriptions' && <SubscriptionsView />}
-        {view === 'statements' && (
-          <StatementsView
-            onOpen={openReport}
-            accounts={accounts}
-            onAccountUpdate={(id, changes) => {
-              setAccounts(prev => prev.map(a =>
-                a.id === id ? { ...a, ...changes, updatedAt: Date.now() } : a
-              ));
-            }}
-          />
-        )}
-        {view === 'statement' && statementId && (
-          <StatementReportView
-            report={loadStatement(statementId)}
-            accounts={accounts}
-            onBack={() => navigate('statements')}
-            onDelete={() => navigate('statements')}
-          />
-        )}
-        {view === 'about' && <AboutView onNavigate={navigate} />}
-      </main>
+        <main className="container pb-32">
+          {view === 'dashboard' && (
+            <Dashboard
+              totals={totals}
+              accounts={accounts}
+              members={members}
+              memberTotals={memberTotals}
+              onAdd={() => setPicker(true)}
+              onEdit={openEdit}
+              onImport={() => setView('import')}
+              onManageFamily={() => setFamilyModal(true)}
+              onTour={() => setShowTour(true)}
+            />
+          )}
+          {view === 'accounts' && (
+            <AccountsView
+              accounts={accounts}
+              members={members}
+              onAdd={() => setPicker(true)}
+              onEdit={openEdit}
+              onManageFamily={() => setFamilyModal(true)}
+            />
+          )}
+          {view === 'import' && (
+            <ImportView
+              onAdd={() => setPicker(true)}
+              existingAccounts={accounts}
+              members={members}
+              onImport={(incoming, ownerId) => {
+                const result = mergeImportedAccounts(accounts, incoming, Date.now(), ownerId);
+                saveAccounts(result.accounts);
+                window.location.reload();
+                return result;
+              }}
+            />
+          )}
+          {view === 'subscriptions' && <SubscriptionsView />}
+          {view === 'statements' && (
+            <StatementsView
+              onOpen={openReport}
+              accounts={accounts}
+              onAccountUpdate={(id, changes) => {
+                setAccounts(prev => prev.map(a =>
+                  a.id === id ? { ...a, ...changes, updatedAt: Date.now() } : a
+                ));
+              }}
+            />
+          )}
+          {view === 'statement' && statementId && (
+            <StatementReportView
+              report={loadStatement(statementId)}
+              accounts={accounts}
+              onBack={() => navigate('statements')}
+              onDelete={() => navigate('statements')}
+            />
+          )}
+          {view === 'about' && <AboutView onNavigate={navigate} />}
+        </main>
 
-      <Footer onAbout={() => navigate('about')} />
+        <Footer onAbout={() => navigate('about')} />
+      </div>
 
       <BottomNav view={view} setView={setView} onAdd={() => setPicker(true)} />
 
@@ -275,6 +277,6 @@ export default function App() {
         />
       )}
       {showTour && <Tour onDone={() => setShowTour(false)} />}
-    </div>
+    </>
   );
 }
