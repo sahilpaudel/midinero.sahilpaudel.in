@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
 import { Icon } from '../icons/Icon.jsx';
+import SiteStats from '../components/SiteStats.jsx';
 
 // ── Dummy data for screen previews ──────────────────────────────────
 
@@ -505,7 +506,7 @@ export default function AboutView({ onNavigate }) {
           No servers. No accounts. No third-party data sharing. Just you and your money,
           in one quiet place.
         </p>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 32 }}>
           {[
             { icon: 'lock',  label: 'End-to-end encrypted'    },
             { icon: 'close', label: 'No cloud sync'            },
@@ -523,6 +524,7 @@ export default function AboutView({ onNavigate }) {
             </span>
           ))}
         </div>
+        <SiteStats />
       </div>
 
       {/* ── Trust pillars ───────────────────────────────────────── */}

@@ -8,6 +8,7 @@ import SectionHeader from '../components/SectionHeader.jsx';
 import Composition from '../components/Composition.jsx';
 import AccountRow from '../components/AccountRow.jsx';
 import FamilyBar from '../components/FamilyBar.jsx';
+import SiteStats from '../components/SiteStats.jsx';
 
 export default function Dashboard({ totals, accounts, members = [], memberTotals = [], onAdd, onEdit, onImport, onManageFamily, onTour }) {
   if (accounts.length === 0) return <EmptyState onAdd={onAdd} onManageFamily={onManageFamily} onTour={onTour} />;
@@ -109,6 +110,8 @@ export default function Dashboard({ totals, accounts, members = [], memberTotals
       {memberTotals.length > 0 && (
         <FamilyBar memberTotals={memberTotals} onManage={onManageFamily} />
       )}
+
+      <SiteStats style={{ marginTop: 20 }} />
 
       {/* Composition + recent */}
       <div className="grid-12 mt-12">
