@@ -13,6 +13,7 @@ import FamilyModal from './components/FamilyModal.jsx';
 import Dashboard from './views/Dashboard.jsx';
 import AboutView from './views/AboutView.jsx';
 import Tour from './components/Tour.jsx';
+import MigrationNoticeDialog from './components/MigrationNoticeDialog.jsx';
 import AccountsView from './views/AccountsView.jsx';
 import ImportView from './views/ImportView.jsx';
 import StatementsView from './views/StatementsView.jsx';
@@ -65,6 +66,7 @@ export default function App() {
   const [showTour, setShowTour] = useState(
     () => !localStorage.getItem('tour_seen') && loadAccounts().length === 0
   );
+  const [showMigrationNotice, setShowMigrationNotice] = useState(true);
 
   const view        = location.view;
   const statementId = location.statementId;
@@ -277,6 +279,9 @@ export default function App() {
         />
       )}
       {showTour && <Tour onDone={() => setShowTour(false)} />}
+      {showMigrationNotice && (
+        <MigrationNoticeDialog onClose={() => setShowMigrationNotice(false)} />
+      )}
     </>
   );
 }
