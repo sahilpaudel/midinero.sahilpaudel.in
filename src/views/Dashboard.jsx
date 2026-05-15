@@ -1,17 +1,67 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
 import { fmtINR, fmtDate } from '../lib/format.js';
 import { loadStatements } from '../lib/statementStore.js';
+import { importDump, isForeignBackup } from '../lib/storage.js';
 import EmptyState from '../components/EmptyState.jsx';
+import ForeignBackupDialog from '../components/ForeignBackupDialog.jsx';
 import StatCard from '../components/StatCard.jsx';
 import SectionHeader from '../components/SectionHeader.jsx';
 import Composition from '../components/Composition.jsx';
 import AccountRow from '../components/AccountRow.jsx';
 import FamilyBar from '../components/FamilyBar.jsx';
 import SiteStats from '../components/SiteStats.jsx';
+import ExportDialog from '../components/ExportDialog.jsx';
+import { Icon } from '../icons/Icon.jsx';
 
 export default function Dashboard({ totals, accounts, members = [], memberTotals = [], onAdd, onEdit, onImport, onManageFamily, onTour }) {
-  if (accounts.length === 0) return <EmptyState onAdd={onAdd} onManageFamily={onManageFamily} onTour={onTour} />;
+  const importRef = useRef();
+  const [importing, setImporting] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [foreignBackup, setForeignBackup] = useState(null);
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    importRef.current.value = '';
+
+    let dump;
+    try {
+      const text = await file.text();
+      dump = JSON.parse(text);
+      if (typeof dump !== 'object' || Array.isArray(dump)) throw new Error();
+    } catch {
+      alert('Invalid backup file.');
+      return;
+    }
+
+    if (isForeignBackup(dump)) {
+      setForeignBackup(dump);
+      return;
+    }
+
+    if (!window.confirm('This will overwrite all current data. Continue?')) return;
+    setImporting(true);
+    try { importDump(dump); } catch { setImporting(false); }
+  };
+
+  if (accounts.length === 0) return (
+    <>
+      <EmptyState
+        onAdd={onAdd}
+        onImport={() => importRef.current?.click()}
+        onManageFamily={onManageFamily}
+        onTour={onTour}
+      />
+      <input ref={importRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleImport} />
+      {foreignBackup && (
+        <ForeignBackupDialog
+          dump={foreignBackup}
+          onCancel={() => setForeignBackup(null)}
+        />
+      )}
+    </>
+  );
 
   const stmtByAccount = useMemo(() => {
     const map = {};
@@ -55,6 +105,38 @@ export default function Dashboard({ totals, accounts, members = [], memberTotals
 
   return (
     <div className="pt-14 fade">
+      {/* Top action bar */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 24 }}>
+        {onManageFamily && (
+          <button
+            onClick={onManageFamily}
+            className="btn-ghost"
+            style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6 }}
+          >
+            <Icon name="users" size={14} stroke={1.5} style={{ color: 'var(--text-dim)' }} />
+            <span className="btn-icon-label">{members.length > 0 ? 'Manage family' : 'Add family'}</span>
+          </button>
+        )}
+        <button
+          onClick={() => setShowExport(true)}
+          className="btn-ghost"
+          style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6 }}
+        >
+          <Icon name="upload" size={14} stroke={1.5} style={{ color: 'var(--positive)' }} />
+          <span className="btn-icon-label">Export</span>
+        </button>
+        <button
+          onClick={() => importRef.current?.click()}
+          disabled={importing}
+          className="btn-ghost"
+          style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6 }}
+        >
+          <Icon name="download" size={14} stroke={1.5} style={{ color: '#60a5fa' }} />
+          <span className="btn-icon-label">{importing ? 'Importing…' : 'Import'}</span>
+        </button>
+        <input ref={importRef} type="file" accept=".json,application/json" style={{ display: 'none' }} onChange={handleImport} />
+      </div>
+
       {/* Hero */}
       <div className="grid-12 items-end pb-14" style={{ borderBottom: '1px solid var(--line)' }}>
         <div className="col-8">
@@ -89,14 +171,6 @@ export default function Dashboard({ totals, accounts, members = [], memberTotals
               }} />
               {liabCount} {liabCount === 1 ? 'liability' : 'liabilities'}
             </span>
-            {members.length === 0 && onManageFamily && (
-              <button
-                onClick={onManageFamily}
-                style={{ fontSize: 12, color: 'var(--text-faint)', textDecoration: 'underline', textDecorationColor: 'var(--line)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-              >
-                + Family view
-              </button>
-            )}
           </div>
         </div>
 
@@ -162,12 +236,12 @@ export default function Dashboard({ totals, accounts, members = [], memberTotals
                 style={{ textAlign: 'left', cursor: 'pointer', width: '100%' }}
               >
                 <div className="stat-label">
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#d4ff3a', display: 'inline-block' }} />
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-text)', display: 'inline-block' }} />
                   Mutual Fund Folios
                   <span style={{
                     marginLeft: 'auto', fontSize: 9, letterSpacing: '0.12em',
-                    border: '1px solid rgba(212,255,58,0.3)', color: '#d4ff3a',
-                    borderRadius: 4, padding: '1px 5px',
+                    border: '1px solid var(--accent-text)', color: 'var(--accent-text)',
+                    borderRadius: 4, padding: '1px 5px', opacity: 0.7,
                   }}>CAS</span>
                 </div>
                 <div className="stat-value">{fmtINR(casData.mfAggregate.balance)}</div>
@@ -205,6 +279,21 @@ export default function Dashboard({ totals, accounts, members = [], memberTotals
             ))}
           </div>
         </div>
+      )}
+
+      {showExport && (
+        <ExportDialog
+          accounts={accounts}
+          members={members}
+          onClose={() => setShowExport(false)}
+        />
+      )}
+
+      {foreignBackup && (
+        <ForeignBackupDialog
+          dump={foreignBackup}
+          onCancel={() => setForeignBackup(null)}
+        />
       )}
     </div>
   );

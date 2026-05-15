@@ -7,7 +7,7 @@ import SiteStats from '../components/SiteStats.jsx';
 
 const DEMO_ASSETS = [
   { label: 'HDFC Savings',           sub: 'HDFC Bank · Savings',   value: 142000,  color: '#7dd3fc', icon: 'bank'       },
-  { label: 'Parag Parikh Flexi Cap', sub: 'PPFAS Mutual Fund',      value: 892400,  color: '#d4ff3a', icon: 'mf'         },
+  { label: 'Parag Parikh Flexi Cap', sub: 'PPFAS Mutual Fund',      value: 892400,  color: 'var(--accent-text)', icon: 'mf'         },
   { label: 'HDFC Nifty 50 ETF',      sub: 'Zerodha',                value: 324000,  color: '#fbbf24', icon: 'stock'      },
   { label: 'NPS Tier-1',             sub: 'SBI Pension Fund',       value: 286500,  color: '#a78bfa', icon: 'nps'        },
   { label: 'SGB 2024',               sub: 'Sovereign Gold Bond',    value: 95200,   color: '#d9b67c', icon: 'gold'       },
@@ -73,7 +73,7 @@ const Divider = () => (
 );
 
 const Accent = ({ children }) => (
-  <em style={{ fontStyle: 'normal', color: 'var(--accent)', fontFamily: 'Fraunces, serif' }}>{children}</em>
+  <em style={{ fontStyle: 'normal', color: 'var(--accent-text)', fontFamily: 'Fraunces, serif' }}>{children}</em>
 );
 
 // ── Browser-frame wrapper for screen previews ──────────────────────
@@ -96,7 +96,7 @@ function Screen({ children, label }) {
             <span key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c, display: 'inline-block', flexShrink: 0 }} />
           ))}
           <span style={{ flex: 1, textAlign: 'center', fontSize: 10, color: 'var(--text-faint)', letterSpacing: '0.06em' }}>
-            midinero · private
+            coffer · private
           </span>
         </div>
         <div style={{ padding: '20px 20px 24px' }}>{children}</div>
@@ -112,7 +112,7 @@ function Screen({ children, label }) {
 
 function DashboardPreview() {
   const comp = [
-    { label: 'Mutual funds', pct: 54, color: '#d4ff3a', value: 892400 },
+    { label: 'Mutual funds', pct: 54, color: 'var(--accent-text)', value: 892400 },
     { label: 'Stocks',       pct: 20, color: '#fbbf24', value: 324000 },
     { label: 'NPS',          pct: 17, color: '#a78bfa', value: 286500 },
     { label: 'Bank',         pct: 9,  color: '#7dd3fc', value: 142000 },
@@ -224,7 +224,7 @@ function AccountsPreview() {
             <span style={{ fontSize: 13, color: 'var(--text-dim)', marginLeft: 6 }}>accounts</span>
           </div>
         </div>
-        <div style={{ fontSize: 10, padding: '5px 11px', background: 'var(--accent)', color: '#0a0a0a', borderRadius: 20, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ fontSize: 10, padding: '5px 11px', background: 'var(--accent-bg)', color: 'var(--accent-bg-text)', borderRadius: 20, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
           + Add new
         </div>
       </div>
@@ -341,7 +341,7 @@ function TrustCard({ icon, title, body }) {
       <div style={{
         width: 36, height: 36, borderRadius: 10, border: '1px solid var(--line)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'var(--accent)', background: 'var(--surface-2)',
+        color: 'var(--accent-text)', background: 'var(--surface-2)',
       }}>
         <Icon name={icon} size={16} stroke={1.5} />
       </div>
@@ -358,7 +358,7 @@ function JourneyStep({ n, title, body }) {
     <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
       <div style={{
         width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-        background: 'var(--accent)', color: '#0a0a0a',
+        background: 'var(--accent-bg)', color: 'var(--accent-bg-text)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: 'Fraunces, serif', fontSize: 16, fontWeight: 600,
       }}>
@@ -380,9 +380,9 @@ function ArchStep({ n, title, body, last }) {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
         <div style={{
           width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-          border: '2px solid var(--accent)',
+          border: '2px solid var(--accent-text)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 12, fontWeight: 600, color: 'var(--accent)',
+          fontSize: 12, fontWeight: 600, color: 'var(--accent-text)',
         }}>
           {n}
         </div>
@@ -449,7 +449,7 @@ function FeatureSection({ eyebrow, title, body, bullets, preview, flip }) {
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {bullets.map(b => (
                   <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'var(--text-dim)' }}>
-                    <span style={{ color: 'var(--accent)', marginTop: 2, flexShrink: 0 }}>✓</span>
+                    <span style={{ color: 'var(--accent-text)', marginTop: 2, flexShrink: 0 }}>✓</span>
                     {b}
                   </li>
                 ))}
@@ -469,7 +469,7 @@ function FeatureSection({ eyebrow, title, body, bullets, preview, flip }) {
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {bullets.map(b => (
                   <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'var(--text-dim)' }}>
-                    <span style={{ color: 'var(--accent)', marginTop: 2, flexShrink: 0 }}>✓</span>
+                    <span style={{ color: 'var(--accent-text)', marginTop: 2, flexShrink: 0 }}>✓</span>
                     {b}
                   </li>
                 ))}
@@ -491,7 +491,7 @@ export default function AboutView({ onNavigate }) {
 
       {/* ── Hero ────────────────────────────────────────────────── */}
       <div style={{ paddingBottom: 64, borderBottom: '1px solid var(--line)' }}>
-        <Eyebrow>About MiDinero</Eyebrow>
+        <Eyebrow>About Coffer</Eyebrow>
         <h1 style={{
           fontFamily: 'Fraunces, serif',
           fontSize: 'clamp(40px, 6vw, 72px)',
@@ -502,7 +502,7 @@ export default function AboutView({ onNavigate }) {
           <Accent>Privately</Accent> tracked.
         </h1>
         <p style={{ fontSize: 16, color: 'var(--text-dim)', lineHeight: 1.75, maxWidth: 560, margin: '0 0 36px' }}>
-          MiDinero is a personal wealth tracker that lives entirely on your device.
+          Coffer is a personal wealth tracker that lives entirely on your device.
           No servers. No accounts. No third-party data sharing. Just you and your money,
           in one quiet place.
         </p>
@@ -547,7 +547,7 @@ export default function AboutView({ onNavigate }) {
           <TrustCard
             icon="pie"
             title="No tracking whatsoever"
-            body="MiDinero contains zero analytics, zero error-reporting SDKs, and zero marketing pixels. We don't know who you are or how you use the app."
+            body="Coffer contains zero analytics, zero error-reporting SDKs, and zero marketing pixels. We don't know who you are or how you use the app."
           />
         </div>
       </div>
@@ -582,7 +582,7 @@ export default function AboutView({ onNavigate }) {
               background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: 0,
             }}>
               {[
-                { label: 'Your vault password', sub: 'Stays in your memory only', color: 'var(--accent)', icon: 'lock' },
+                { label: 'Your vault password', sub: 'Stays in your memory only', color: 'var(--accent-text)', icon: 'lock' },
                 { label: 'PBKDF2 key derivation', sub: '100,000 iterations · SHA-256', color: '#a78bfa', icon: 'repeat' },
                 { label: 'AES-256-GCM encryption', sub: 'Each record encrypted independently', color: '#60a5fa', icon: 'pdf' },
                 { label: 'Browser Storage', sub: 'On your device · never leaves', color: 'var(--positive)', icon: 'bank' },
@@ -616,7 +616,7 @@ export default function AboutView({ onNavigate }) {
             </div>
             <div style={{
               marginTop: 14, padding: '12px 16px', borderRadius: 10,
-              background: 'var(--accent)12', border: '1px solid var(--accent)33',
+              background: 'var(--surface)', border: '1px solid var(--line)',
               fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6,
             }}>
               <strong style={{ color: 'var(--accent-text)' }}>Gmail sync note:</strong>{' '}
@@ -640,7 +640,7 @@ export default function AboutView({ onNavigate }) {
           <JourneyStep n={2} title="Add your accounts"
             body="Pick from 10 account types — bank, credit card, mutual fund, stocks, NPS, crypto, real estate, gold, cash, or loan. Fill in the details, set a nickname, assign to a family member if needed." />
           <JourneyStep n={3} title="Keep balances current"
-            body="Update balances manually any time, or upload a PDF statement and let MiDinero parse it automatically. Credit card accounts can sync their outstanding amount and due date from Gmail." />
+            body="Update balances manually any time, or upload a PDF statement and let Coffer parse it automatically. Credit card accounts can sync their outstanding amount and due date from Gmail." />
           <JourneyStep n={4} title="See your full picture"
             body="The Overview shows your net worth, wealth composition by asset class, and recently updated accounts. Drill into Accounts for the full list, Statements for spending analysis, and Subscriptions to track recurring charges." />
         </div>
@@ -651,7 +651,7 @@ export default function AboutView({ onNavigate }) {
         <FeatureSection
           eyebrow="Feature · Overview"
           title="Your financial nerve centre"
-          body="The Overview page is the first thing you see when you open MiDinero. It gives you a real-time snapshot of your net worth, a breakdown of where your wealth lives, and a quick look at the accounts you've touched recently."
+          body="The Overview page is the first thing you see when you open Coffer. It gives you a real-time snapshot of your net worth, a breakdown of where your wealth lives, and a quick look at the accounts you've touched recently."
           bullets={[
             'Net worth updated instantly as balances change',
             'Composition bar showing wealth split across asset types',
@@ -686,7 +686,7 @@ export default function AboutView({ onNavigate }) {
         <FeatureSection
           eyebrow="Feature · Statements"
           title="Deep-dive into your spending"
-          body="Upload a PDF statement or pull the latest one directly from Gmail with one click. MiDinero parses it locally — extracting balances, due dates, transaction lists, spending categories, and payment method breakdowns — all without sending a single byte to a server."
+          body="Upload a PDF statement or pull the latest one directly from Gmail with one click. Coffer parses it locally — extracting balances, due dates, transaction lists, spending categories, and payment method breakdowns — all without sending a single byte to a server."
           bullets={[
             'Supports bank, credit card, loan, and NPS statements',
             'Gmail sync via OAuth — reads only the matching email',
@@ -725,7 +725,7 @@ export default function AboutView({ onNavigate }) {
           10 account types
         </h2>
         <p style={{ fontSize: 14, color: 'var(--text-dim)', lineHeight: 1.75, margin: '0 0 36px', maxWidth: 560 }}>
-          MiDinero handles the full spectrum of Indian personal finance — assets
+          Coffer handles the full spectrum of Indian personal finance — assets
           that grow and liabilities that shrink.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 12 }}>
@@ -774,7 +774,7 @@ export default function AboutView({ onNavigate }) {
             </h2>
             <p style={{ fontSize: 14, color: 'var(--text-dim)', lineHeight: 1.75, margin: '0 0 20px' }}>
               Add family members — spouse, parents, children — and assign accounts to
-              each one. MiDinero shows individual net worths and a combined family view.
+              each one. Coffer shows individual net worths and a combined family view.
               All on the same device, all encrypted together.
             </p>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -786,7 +786,7 @@ export default function AboutView({ onNavigate }) {
                 'Unassigned accounts default to the primary member',
               ].map(b => (
                 <li key={b} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'var(--text-dim)' }}>
-                  <span style={{ color: 'var(--accent)', marginTop: 2, flexShrink: 0 }}>✓</span>
+                  <span style={{ color: 'var(--accent-text)', marginTop: 2, flexShrink: 0 }}>✓</span>
                   {b}
                 </li>
               ))}
@@ -798,7 +798,7 @@ export default function AboutView({ onNavigate }) {
               Family net worth
             </div>
             {[
-              { name: 'Rahul',  color: '#d4ff3a', assets: 1140100, liabs: 28500  },
+              { name: 'Rahul',  color: 'var(--accent-text)', assets: 1140100, liabs: 28500  },
               { name: 'Priya',  color: '#a78bfa', assets: 600000,  liabs: 392000 },
             ].map(m => {
               const net = m.assets - m.liabs;
@@ -886,11 +886,11 @@ export default function AboutView({ onNavigate }) {
               a: 'Your encrypted data is stored in browser storage. Clearing browser storage will erase it permanently. Export a backup from the footer regularly — it\'s a single encrypted JSON file you can re-import on any device.',
             },
             {
-              q: 'Can I access MiDinero on multiple devices?',
+              q: 'Can I access Coffer on multiple devices?',
               a: 'Not automatically — by design. There\'s no cloud sync. You can export a backup and import it on another device or browser. Both copies will then be independent.',
             },
             {
-              q: 'What encryption does MiDinero use?',
+              q: 'What encryption does Coffer use?',
               a: 'AES-256-GCM with a key derived from your vault password using PBKDF2 (100,000 iterations, SHA-256 HMAC). Each record is independently encrypted. The derived key is held only in memory and cleared when you close the tab.',
             },
             {
@@ -899,7 +899,7 @@ export default function AboutView({ onNavigate }) {
             },
             {
               q: 'Is there a mobile app?',
-              a: 'MiDinero runs in any modern browser. On iOS and Android you can add it to your home screen (via Share → Add to Home Screen on iOS, or the browser menu on Android) for a native app-like experience.',
+              a: 'Coffer runs in any modern browser. On iOS and Android you can add it to your home screen (via Share → Add to Home Screen on iOS, or the browser menu on Android) for a native app-like experience.',
             },
             {
               q: 'What if I forget my vault password?',
@@ -910,8 +910,8 @@ export default function AboutView({ onNavigate }) {
               a: 'Never. PDFs are processed entirely inside your browser using the pdf.js library. The text is extracted locally, parsed locally, and stored locally in encrypted form. No file is uploaded anywhere.',
             },
             {
-              q: 'Can I use MiDinero offline?',
-              a: 'Yes. Once the page has loaded, MiDinero works completely offline. The only features that require internet are Gmail sync (fetching a statement email) and the initial page load.',
+              q: 'Can I use Coffer offline?',
+              a: 'Yes. Once the page has loaded, Coffer works completely offline. The only features that require internet are Gmail sync (fetching a statement email) and the initial page load.',
             },
           ].map(f => <FAQItem key={f.q} q={f.q} a={f.a} />)}
         </div>
@@ -921,7 +921,7 @@ export default function AboutView({ onNavigate }) {
       <div style={{ paddingTop: 64, textAlign: 'center' }}>
         <div style={{
           width: 48, height: 48, borderRadius: 14,
-          background: 'var(--accent)', color: '#0a0a0a',
+          background: 'var(--accent-bg)', color: 'var(--accent-bg-text)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           margin: '0 auto 24px',
         }}>

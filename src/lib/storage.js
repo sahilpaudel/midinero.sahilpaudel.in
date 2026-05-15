@@ -1,38 +1,41 @@
 // All data stays on this device. localStorage only — no server, no telemetry.
-import { vaultGetRaw, vaultSetRaw, vaultRemove } from './vault.js';
+import { vaultGetRaw, vaultSetRaw, vaultRemove, resetVault } from './vault.js';
 
 export function exportAllData() {
   const dump = {};
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (k.startsWith('midinero') || k.startsWith('ledger')) dump[k] = localStorage.getItem(k);
+    if (k.startsWith('coffer') || k.startsWith('ledger')) dump[k] = localStorage.getItem(k);
   }
   const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = `midinero-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `coffer-backup-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-export function importAllData(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const dump = JSON.parse(e.target.result);
-        if (typeof dump !== 'object' || Array.isArray(dump)) throw new Error('Invalid backup file.');
-        Object.entries(dump).forEach(([k, v]) => localStorage.setItem(k, v));
-        resolve();
-        window.location.reload();
-      } catch (err) {
-        reject(err);
-      }
-    };
-    reader.onerror = () => reject(new Error('Could not read file.'));
-    reader.readAsText(file);
-  });
+
+// Returns true when the backup's vault salt differs from the active one (foreign account).
+export function isForeignBackup(dump) {
+  const current = localStorage.getItem('coffer.vault.salt');
+  const backup  = dump['coffer.vault.salt'];
+  return !!(current && backup && current !== backup);
+}
+
+// Import an already-parsed and validated dump object.
+export function importDump(dump) {
+  Object.entries(dump).forEach(([k, v]) => localStorage.setItem(k, v));
+  sessionStorage.removeItem('coffer.vault.session');
+  window.location.reload();
+}
+
+// Wipe the current vault completely, then import the foreign dump.
+export function resetAndImportDump(dump) {
+  resetVault();
+  Object.entries(dump).forEach(([k, v]) => localStorage.setItem(k, v));
+  window.location.reload();
 }
 
 import { ACCOUNT_TYPES } from './accountTypes.js';
@@ -40,7 +43,7 @@ import { isAggregateMutualFund, isImportedDetailedMutualFund, normalizeIsin } fr
 
 const LEGACY_STORE_KEY   = 'ledger.v1.accounts';
 const LEGACY_V2_PREFIX   = 'ledger.v2.accounts.';
-const TYPE_STORE_PREFIX  = 'midinero.v2.accounts.';
+const TYPE_STORE_PREFIX  = 'coffer.v2.accounts.';
 const TYPE_KEYS = Object.keys(ACCOUNT_TYPES);
 
 export function loadAccounts() {

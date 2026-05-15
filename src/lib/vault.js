@@ -7,9 +7,9 @@
 // sessionStorage with a 30-min TTL. tryRestoreSession() re-imports it on
 // page reload so the PIN is only required once per tab (or per 30 min).
 
-const SALT_KEY    = 'midinero.vault.salt';
-const CHECK_KEY   = 'midinero.vault.check';
-const SESSION_KEY = 'midinero.vault.session'; // sessionStorage
+const SALT_KEY    = 'coffer.vault.salt';
+const CHECK_KEY   = 'coffer.vault.check';
+const SESSION_KEY = 'coffer.vault.session'; // sessionStorage
 const SESSION_TTL = 30 * 60 * 1000;           // 30 minutes
 
 let _key   = null; // CryptoKey — in memory only
@@ -90,7 +90,7 @@ export function resetVault() {
   const toDelete = [];
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i);
-    if (k.startsWith('midinero') || k.startsWith('ledger')) toDelete.push(k);
+    if (k.startsWith('coffer') || k.startsWith('ledger')) toDelete.push(k);
   }
   toDelete.forEach(k => localStorage.removeItem(k));
   sessionStorage.removeItem(SESSION_KEY);
@@ -159,9 +159,9 @@ function _collectDataKeys() {
 
 function _shouldEncrypt(k) {
   if (k === SALT_KEY || k === CHECK_KEY) return false;
-  if (k === 'midinero.crypto.key' || k.startsWith('midinero.pdf.pwd.')) return false;
+  if (k === 'coffer.crypto.key' || k.startsWith('coffer.pdf.pwd.')) return false;
   if (k === 'theme') return false;
-  return k.startsWith('midinero') || k.startsWith('ledger');
+  return k.startsWith('coffer') || k.startsWith('ledger');
 }
 
 async function _deriveKey(pin, salt) {

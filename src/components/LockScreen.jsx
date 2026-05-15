@@ -47,7 +47,7 @@ export default function LockScreen({ onUnlock }) {
             fontFamily: 'Fraunces, serif', fontSize: 32,
             letterSpacing: '-0.03em', margin: 0, color: 'var(--text)',
           }}>
-            MiDinero
+            Coffer
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-faint)', marginTop: 6 }}>
             {firstTime ? 'Set a PIN to encrypt your data.' : 'Enter your PIN to continue.'}

@@ -93,17 +93,12 @@ export default function AccountsView({ accounts, onAdd, onEdit, onManageFamily, 
   if (accounts.length === 0) {
     return (
       <div className="pt-14 pb-24 fade">
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32 }}>
-          <div>
-            <div className="eyebrow mb-3">All accounts</div>
-            <h1 style={{ fontFamily: 'Fraunces, serif', fontSize: 40, letterSpacing: '-0.03em', lineHeight: 1, margin: 0 }}>
-              0
-              <span style={{ fontSize: 22, letterSpacing: '-0.01em', color: 'var(--text-dim)', marginLeft: 10 }}>accounts</span>
-            </h1>
-          </div>
-          <button className="btn-primary" onClick={onAdd}>
-            <Icon name="plus" size={14} stroke={2} /> Add new
-          </button>
+        <div style={{ marginBottom: 32 }}>
+          <div className="eyebrow mb-3">All accounts</div>
+          <h1 style={{ fontFamily: 'Fraunces, serif', fontSize: 40, letterSpacing: '-0.03em', lineHeight: 1, margin: 0 }}>
+            0
+            <span style={{ fontSize: 22, letterSpacing: '-0.01em', color: 'var(--text-dim)', marginLeft: 10 }}>accounts</span>
+          </h1>
         </div>
         <div style={{
           padding: '64px 24px', textAlign: 'center',
@@ -140,27 +135,22 @@ export default function AccountsView({ accounts, onAdd, onEdit, onManageFamily, 
     <div className="pt-14 pb-24 fade">
 
       {/* ── Page header ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32 }}>
-        <div>
-          <div className="eyebrow mb-3">All accounts</div>
-          <h1 style={{
-            fontFamily: 'Fraunces, serif', fontSize: 40,
-            letterSpacing: '-0.03em', lineHeight: 1, margin: 0,
-          }}>
-            {accounts.length}
-            <span style={{ fontSize: 22, letterSpacing: '-0.01em', color: 'var(--text-dim)', marginLeft: 10 }}>
-              {accounts.length === 1 ? 'account' : 'accounts'}
-            </span>
-          </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10, fontSize: 12 }}>
-            <span style={{ color: 'var(--positive)' }}>{assetCount} assets</span>
-            <span style={{ color: 'var(--line)', fontSize: 16 }}>·</span>
-            <span style={{ color: 'var(--negative)' }}>{liabCount} liabilities</span>
-          </div>
+      <div style={{ marginBottom: 32 }}>
+        <div className="eyebrow mb-3">All accounts</div>
+        <h1 style={{
+          fontFamily: 'Fraunces, serif', fontSize: 40,
+          letterSpacing: '-0.03em', lineHeight: 1, margin: 0,
+        }}>
+          {accounts.length}
+          <span style={{ fontSize: 22, letterSpacing: '-0.01em', color: 'var(--text-dim)', marginLeft: 10 }}>
+            {accounts.length === 1 ? 'account' : 'accounts'}
+          </span>
+        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10, fontSize: 12 }}>
+          <span style={{ color: 'var(--positive)' }}>{assetCount} assets</span>
+          <span style={{ color: 'var(--line)', fontSize: 16 }}>·</span>
+          <span style={{ color: 'var(--negative)' }}>{liabCount} liabilities</span>
         </div>
-        <button className="btn-primary" onClick={onAdd}>
-          <Icon name="plus" size={14} stroke={2} /> Add new
-        </button>
       </div>
 
       {/* ── Summary strip ── */}

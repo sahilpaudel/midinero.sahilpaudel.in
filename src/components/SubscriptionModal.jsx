@@ -130,8 +130,8 @@ export default function SubscriptionModal({ subscription = null, onClose, onSave
                   style={{
                     flex: 1, padding: '8px 0',
                     borderRadius: 8, fontSize: 13,
-                    border: status === s.k ? '1px solid var(--accent)' : '1px solid var(--line)',
-                    background: status === s.k ? 'rgba(212,255,58,0.08)' : 'var(--surface-2)',
+                    border: status === s.k ? '1px solid var(--accent-text)' : '1px solid var(--line)',
+                    background: status === s.k ? 'var(--surface)' : 'var(--surface-2)',
                     color: status === s.k ? 'var(--accent-text)' : 'var(--text-dim)',
                     transition: 'all 0.15s',
                   }}

@@ -2,7 +2,7 @@ import React from 'react';
 import { ACCOUNT_TYPES } from '../lib/accountTypes.js';
 import { Icon } from '../icons/Icon.jsx';
 
-export default function EmptyState({ onAdd, onManageFamily, onTour }) {
+export default function EmptyState({ onAdd, onImport, onManageFamily, onTour }) {
   return (
     <div className="pt-24 pb-24 fade">
       <div className="grid-12">
@@ -23,6 +23,12 @@ export default function EmptyState({ onAdd, onManageFamily, onTour }) {
             <button className="btn-primary" onClick={onAdd}>
               Add your first account <Icon name="arrowRight" size={14} stroke={1.8} />
             </button>
+            {onImport && (
+              <button className="btn-ghost" onClick={onImport} style={{ fontSize: 13 }}>
+                <Icon name="download" size={14} stroke={1.5} style={{ color: '#60a5fa' }} />
+                Import backup
+              </button>
+            )}
             {onManageFamily && (
               <button
                 onClick={onManageFamily}

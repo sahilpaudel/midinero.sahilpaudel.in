@@ -232,9 +232,9 @@ export default function StatementAnalysis({ account, onViewReport, onStatementDa
                 type="button"
                 onClick={() => onViewReport(savedId)}
                 style={{
-                  fontSize: 12, color: 'var(--accent)',
+                  fontSize: 12, color: 'var(--accent-text)',
                   display: 'inline-flex', alignItems: 'center', gap: 5,
-                  border: '1px solid var(--accent)', borderRadius: 7,
+                  border: '1px solid var(--accent-text)', borderRadius: 7,
                   padding: '3px 9px', background: 'transparent', cursor: 'pointer',
                 }}
               >

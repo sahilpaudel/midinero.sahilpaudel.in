@@ -152,7 +152,7 @@ export default function GmailSync({ account, onBalance }) {
                 </div>
               </div>
               <div style={{
-                fontSize: 13.5, fontWeight: 500, color: 'var(--accent)',
+                fontSize: 13.5, fontWeight: 500, color: 'var(--accent-text)',
                 flexShrink: 0, fontVariantNumeric: 'tabular-nums',
               }}>
                 {fmtINR(email.balance)}

@@ -1,6 +1,6 @@
 import { vaultGetRaw, vaultSetRaw } from './vault.js';
 
-const KEY = 'midinero_subscriptions';
+const KEY = 'coffer.subscriptions';
 
 export function loadSubscriptions() {
   try { return JSON.parse(vaultGetRaw(KEY)) || []; }

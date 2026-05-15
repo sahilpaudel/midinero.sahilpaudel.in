@@ -1,7 +1,7 @@
 import { vaultGetRaw, vaultSetRaw } from './vault.js';
 
 const LEGACY_KEY = 'ledger.v2.statements';
-const KEY        = 'midinero.v2.statements';
+const KEY        = 'coffer.v2.statements';
 
 function accountKey(r) {
   return r.accountId || `${r.accountType}:${r.accountNickname}`;
@@ -30,9 +30,16 @@ export function saveStatement(record) {
 export function loadStatements() {
   try {
     const data = vaultGetRaw(KEY);
-    if (data) return JSON.parse(data);
+    if (data) {
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed)) return parsed;
+    }
     const legacy = vaultGetRaw(LEGACY_KEY);
-    return legacy ? JSON.parse(legacy) : [];
+    if (legacy) {
+      const parsed = JSON.parse(legacy);
+      if (Array.isArray(parsed)) return parsed;
+    }
+    return [];
   } catch { return []; }
 }
 

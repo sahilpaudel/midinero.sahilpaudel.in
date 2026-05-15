@@ -8,4 +8,10 @@ export default defineConfig({
     outDir: 'build',
     chunkSizeWarningLimit: 1400,
   },
+  resolve: {
+    alias: {
+      // browser bundle — avoids Node.js fs/path/stream deps in the main entry
+      exceljs: 'exceljs/dist/exceljs.min.js',
+    },
+  },
 });

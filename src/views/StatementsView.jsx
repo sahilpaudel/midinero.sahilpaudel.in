@@ -269,8 +269,8 @@ function SpendingInsights({ statements, accounts = [] }) {
             onClick={() => setTab(t.k)}
             style={{
               fontSize: 11.5, padding: '5px 14px', borderRadius: 20,
-              border: tab === t.k ? '1px solid var(--accent)' : '1px solid var(--line)',
-              background: tab === t.k ? 'var(--accent)18' : 'transparent',
+              border: tab === t.k ? '1px solid var(--accent-text)' : '1px solid var(--line)',
+              background: tab === t.k ? 'var(--surface)' : 'transparent',
               color: tab === t.k ? 'var(--accent-text)' : 'var(--text-faint)',
               cursor: 'pointer', fontWeight: tab === t.k ? 500 : 400,
               transition: 'all 0.15s ease',
@@ -464,7 +464,7 @@ function SpendingInsights({ statements, accounts = [] }) {
                 const val = dayMap[day];
                 const pct = maxDay > 0 ? (val / maxDay) * 100 : 0;
                 const isWeekend = day === 'Sun' || day === 'Sat';
-                const barColor = isWeekend ? '#fb923c' : '#d4ff3a';
+                const barColor = isWeekend ? '#fb923c' : 'var(--accent-text)';
                 return (
                   <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: '100%', height: 62, display: 'flex', alignItems: 'flex-end' }}>

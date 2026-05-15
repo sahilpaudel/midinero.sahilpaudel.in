@@ -1,5 +1,6 @@
 import React from 'react';
 import { fmtINR } from '../lib/format.js';
+import { Icon } from '../icons/Icon.jsx';
 
 function MemberCard({ member, assets, liabs, net, isYou }) {
   return (
@@ -54,9 +55,11 @@ export default function FamilyBar({ memberTotals, onManage }) {
         </div>
         <button
           onClick={onManage}
-          style={{ fontSize: 11.5, color: 'var(--text-faint)', textDecoration: 'underline', textDecorationColor: 'var(--line)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          className="btn-ghost"
+          style={{ fontSize: 11, padding: '5px 12px', borderRadius: 6 }}
         >
-          Manage members
+          <Icon name="users" size={14} stroke={1.5} style={{ color: 'var(--text-dim)' }} />
+          <span className="btn-icon-label">Manage family</span>
         </button>
       </div>
 

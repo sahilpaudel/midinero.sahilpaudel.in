@@ -5,9 +5,9 @@ const GMAIL_API = 'https://gmail.googleapis.com/gmail/v1';
 
 let gisLoadPromise = null;
 
-const TOKEN_CACHE_KEY = 'midinero.gmail.token';
-const EMAIL_CACHE_KEY = 'midinero.gmail.email';
-const LAST_AUTH_KEY   = 'midinero.gmail.lastAuth';
+const TOKEN_CACHE_KEY = 'coffer.gmail.token';
+const EMAIL_CACHE_KEY = 'coffer.gmail.email';
+const LAST_AUTH_KEY   = 'coffer.gmail.lastAuth';
 
 function getCachedToken() {
   try {

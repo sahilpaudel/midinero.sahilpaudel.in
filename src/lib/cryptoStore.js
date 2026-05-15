@@ -2,8 +2,8 @@
 // localStorage as a JWK — protects against casual localStorage inspection
 // without requiring a user-supplied master password.
 
-const KEY_STORE  = 'midinero.crypto.key';
-const PWD_PREFIX = 'midinero.pdf.pwd.';
+const KEY_STORE  = 'coffer.crypto.key';
+const PWD_PREFIX = 'coffer.pdf.pwd.';
 
 async function getOrCreateKey() {
   const stored = localStorage.getItem(KEY_STORE);

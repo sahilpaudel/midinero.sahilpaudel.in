@@ -1,6 +1,6 @@
 import { vaultGetRaw, vaultSetRaw } from './vault.js';
 
-const KEY = 'midinero.v2.members';
+const KEY = 'coffer.v2.members';
 
 const COLORS = [
   '#6366f1','#8b5cf6','#ec4899','#10b981',

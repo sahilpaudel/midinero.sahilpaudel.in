@@ -3,7 +3,11 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import LockScreen from './components/LockScreen.jsx';
 import { tryRestoreSession, isVaultInitialized } from './lib/vault.js';
+import { migrateStorage } from './lib/migrate.js';
 import './styles/global.css';
+
+// Runs synchronously before React renders — safe because vault reads happen later.
+migrateStorage();
 
 function Root() {
   // null = still checking session, false = locked, true = unlocked

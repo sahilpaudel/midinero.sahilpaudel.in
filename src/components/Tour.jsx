@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 const STEPS = [
   {
     targets: null,
-    title: 'Welcome to MiDinero',
+    title: 'Welcome to Coffer',
     body: 'A private, on-device wealth tracker. Everything you add stays on this device — no sign-up, no cloud, no sync.',
   },
   {
@@ -172,7 +172,7 @@ export default function Tour({ onDone }) {
                   width: i === step ? 18 : 6,
                   height: 6,
                   borderRadius: 3,
-                  background: i === step ? 'var(--accent)' : (i < step ? 'var(--text-faint)' : 'var(--line)'),
+                  background: i === step ? 'var(--accent-bg)' : (i < step ? 'var(--text-faint)' : 'var(--line)'),
                   transition: 'all 0.22s ease',
                   cursor: 'pointer',
                 }}

@@ -374,8 +374,8 @@ export default function CasSync({ accounts, onApply }) {
               onClick={apply}
               style={{
                 fontSize: 13, padding: '8px 0', width: '100%',
-                border: '1px solid var(--accent)', borderRadius: 8,
-                background: 'transparent', color: 'var(--accent)',
+                border: '1px solid var(--accent-text)', borderRadius: 8,
+                background: 'transparent', color: 'var(--accent-text)',
                 cursor: 'pointer', fontWeight: 500, marginTop: 2,
               }}
             >

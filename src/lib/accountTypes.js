@@ -6,7 +6,7 @@
 
 export const ACCOUNT_TYPES = {
   bank:        { label: 'Bank account',  icon: 'bank',       kind: 'asset',     accent: '#7dd3fc' },
-  mutualFund:  { label: 'Mutual fund',   icon: 'mf',         kind: 'asset',     accent: '#d4ff3a' },
+  mutualFund:  { label: 'Mutual fund',   icon: 'mf',         kind: 'asset',     accent: 'var(--accent-text)' },
   stock:       { label: 'Stocks / ETF',  icon: 'stock',      kind: 'asset',     accent: '#fbbf24' },
   nps:         { label: 'NPS',           icon: 'nps',        kind: 'asset',     accent: '#a78bfa' },
   crypto:      { label: 'Crypto',        icon: 'crypto',     kind: 'asset',     accent: '#fb923c' },

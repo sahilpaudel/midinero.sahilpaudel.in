@@ -164,7 +164,7 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [], mem
         fontSize: 15, color: 'var(--text-dim)',
         maxWidth: 580, lineHeight: 1.6, margin: 0,
       }}>
-        Upload a consolidated account statement or fetch it from Gmail — MiDinero reads
+        Upload a consolidated account statement or fetch it from Gmail — Coffer reads
         the broker-wise demat totals and mutual-fund folios total locally, never leaving
         your device.
       </p>
@@ -186,7 +186,7 @@ export default function ImportView({ onAdd, onImport, existingAccounts = [], mem
               Request a CAS from <span style={{ color: 'var(--text)' }}>CAMS</span> or{' '}
               <span style={{ color: 'var(--text)' }}>KFintech</span>, or use the{' '}
               <span style={{ color: 'var(--text)' }}>CDSL</span> consolidated statement.
-              MiDinero reads the consolidated summary and creates broker-wise accounts plus
+              Coffer reads the consolidated summary and creates broker-wise accounts plus
               one mutual-fund folios total.
             </p>
 

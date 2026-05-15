@@ -1,11 +1,11 @@
 {
-  "name": "midinero",
+  "name": "coffer",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "description": "Private, on-device wealth tracker — assets and liabilities in one place.",
-  "homepage": "https://midinero.sahilpaudel.in",
+  "homepage": "https://cofr.in",
   "scripts": {
     "dev": "vite",
     "build": "export SET NODE_OPTIONS=--openssl-legacy-provider && vite build",
@@ -14,6 +14,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
+    "fflate": "^0.8.2",
     "pdfjs-dist": "^4.10.38",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

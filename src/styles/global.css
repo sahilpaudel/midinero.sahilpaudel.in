@@ -1,5 +1,5 @@
 /* ────────────────────────────────────────────────────────────
-   MiDinero · design tokens & base styles
+   Coffer · design tokens & base styles
    Dark, editorial, Cred-adjacent — one accent, refined hierarchy.
    ──────────────────────────────────────────────────────────── */
 
@@ -17,6 +17,8 @@
   --accent: #d4ff3a;       /* electric lime */
   --accent-soft: #b8e032;
   --accent-text: var(--accent);  /* text-safe accent (overridden in light mode) */
+  --accent-bg: var(--accent);    /* accent as background color */
+  --accent-bg-text: #0a0a0a;    /* text on accent background */
   --positive: #6ee7a0;
   --negative: #ff6b6b;
   --amber: #f59e0b;
@@ -32,23 +34,25 @@
 
 /* ─── Light mode ─── */
 [data-theme="light"] {
-  --ink: #fafaf8;
-  --ink-soft: #f3f3f1;
-  --surface: #eeeeec;
-  --surface-2: #e5e5e3;
-  --line: #d8d8d4;
-  --line-soft: #e0e0dc;
-  --text: #111111;
-  --text-dim: #565656;
-  --text-faint: #9a9a9a;
+  --ink: #f2efe8;
+  --ink-soft: #e9e6de;
+  --surface: #e2dfd6;
+  --surface-2: #d8d5cc;
+  --line: #bfbcb2;
+  --line-soft: #ccc9c0;
+  --text: #18160f;
+  --text-dim: #3e3c35;
+  --text-faint: #6e6c64;
 
   --accent: #d4ff3a;
   --accent-soft: #bee029;
   --accent-text: #4a7400;   /* readable on light bg */
-  --positive: #15803d;
-  --negative: #dc2626;
-  --amber: #d97706;
-  --gold: #b07d3a;
+  --accent-bg: var(--text);        /* dark bg in light mode */
+  --accent-bg-text: var(--ink);   /* light text on dark bg */
+  --positive: #166534;
+  --negative: #b91c1c;
+  --amber: #b45309;
+  --gold: #92621a;
 
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.07);
 }
@@ -84,6 +88,7 @@ body {
   background-image:
     radial-gradient(1200px 600px at 80% -10%, rgba(212, 255, 58, 0.04), transparent 60%),
     radial-gradient(900px 500px at -10% 100%, rgba(217, 182, 124, 0.03), transparent 60%);
+  /* lime tint overridden in light mode below */
   background-attachment: fixed;
   background-repeat: no-repeat;
   transition: background-color 0.25s ease, color 0.2s ease;
@@ -91,7 +96,7 @@ body {
 
 [data-theme="light"] body {
   background-image:
-    radial-gradient(1200px 600px at 80% -10%, rgba(212, 255, 58, 0.06), transparent 60%),
+    radial-gradient(1200px 600px at 80% -10%, rgba(74, 116, 0, 0.05), transparent 60%),
     radial-gradient(900px 500px at -10% 100%, rgba(217, 182, 124, 0.04), transparent 60%);
 }
 
@@ -212,7 +217,7 @@ a { color: inherit; text-decoration: none; }
   white-space: nowrap;
 }
 .pill-accent { border-color: rgba(212, 255, 58, 0.3); color: var(--accent-text); }
-[data-theme="light"] .pill-accent { border-color: rgba(74, 116, 0, 0.25); }
+[data-theme="light"] .pill-accent { border-color: rgba(74, 116, 0, 0.3); }
 
 /* ─── Buttons ─── */
 .btn-ghost {
@@ -228,6 +233,7 @@ a { color: inherit; text-decoration: none; }
   gap: 6px;
 }
 .btn-ghost:hover { color: var(--text); border-color: var(--text-faint); background: var(--surface); }
+.btn-icon-label { display: inline; }
 
 .btn-primary {
   background: var(--accent);
@@ -248,6 +254,13 @@ a { color: inherit; text-decoration: none; }
   cursor: not-allowed;
   transform: none;
 }
+
+[data-theme="light"] .btn-primary {
+  background: var(--text);
+  color: var(--ink);
+}
+[data-theme="light"] .btn-primary:hover { background: var(--text-dim); transform: translateY(-1px); }
+[data-theme="light"] .btn-primary:disabled { background: var(--surface-2); color: var(--text-faint); }
 
 /* ─── Modal backdrop ─── */
 .backdrop {
@@ -491,8 +504,10 @@ a { color: inherit; text-decoration: none; }
   margin: 0 auto;
   padding: 40px 32px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  text-align: center;
+  gap: 6px;
   font-size: 11.5px;
   color: var(--text-faint);
 }
@@ -617,15 +632,23 @@ a { color: inherit; text-decoration: none; }
   justify-content: center;
 }
 .brand-mark span {
-  font-family: 'Fraunces', serif;
-  font-size: 15px;
-  font-weight: 600;
+  font-family: system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
   color: #0a0a0a;
+  line-height: 1;
 }
 .brand-name {
   font-family: 'Fraunces', serif;
   font-size: 17px;
   letter-spacing: -0.02em;
+}
+.brand-devanagari {
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--text-faint);
+  letter-spacing: 0;
+  margin-left: -4px;
 }
 
 .nav { display: flex; align-items: center; gap: 28px; }
@@ -671,7 +694,7 @@ a { color: inherit; text-decoration: none; }
   height: 44px;
   border-radius: 12px;
   background: rgba(212, 255, 58, 0.08);
-  color: var(--accent);
+  color: var(--accent-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -761,6 +784,22 @@ a { color: inherit; text-decoration: none; }
 }
 .bottom-nav-fab:active { transform: scale(0.94); }
 
+[data-theme="light"] .bottom-nav-fab {
+  background: var(--text);
+  color: var(--ink);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+}
+[data-theme="light"] .brand-mark {
+  background: var(--text);
+}
+[data-theme="light"] .brand-mark span {
+  color: var(--ink);
+}
+[data-theme="light"] .import-icon {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-dim);
+}
+
 .mobile-only { display: none !important; }
 
 /* ─── Mobile overrides ─── */
@@ -769,6 +808,8 @@ a { color: inherit; text-decoration: none; }
   .topbar-inner { padding: 0 16px; gap: 12px; }
   .mobile-hidden { display: none !important; }
   .mobile-only { display: flex !important; }
+  .brand-devanagari { display: none; }
+  .btn-icon-label { display: none; }
 
   /* push content above the fixed bottom nav */
   .pb-32 { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
@@ -806,15 +847,9 @@ a { color: inherit; text-decoration: none; }
   /* section header */
   .section-title { font-size: 18px; }
 
-  /* footer: compact stacked layout on mobile, sits above bottom nav */
+  /* footer: compact on mobile, sits above bottom nav */
   .footer { margin-top: 40px; }
-  .footer-inner {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 14px;
-    padding: 24px 20px calc(80px + env(safe-area-inset-bottom, 0px));
-  }
+  .footer-inner { gap: 8px; padding: 24px 20px calc(80px + env(safe-area-inset-bottom, 0px)); }
 
   /* chips: wrap onto multiple lines instead of overflowing */
   .chips { flex-wrap: wrap; border-radius: 12px; }
