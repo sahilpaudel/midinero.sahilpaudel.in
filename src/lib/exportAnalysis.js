@@ -1,4 +1,6 @@
 import { ACCOUNT_TYPES } from './accountTypes.js';
+import { loadStatements } from './statementStore.js';
+import { loadSubscriptions } from './subscriptionStore.js';
 
 const DATE = new Date().toISOString().slice(0, 10);
 
@@ -54,8 +56,6 @@ function font(opts) {
 // ── XLSX export ──────────────────────────────────────────────────────
 export async function exportXLSX(accounts, members) {
   const ExcelJS = (await import('exceljs')).default;
-  const { loadStatements }    = await import('./statementStore.js');
-  const { loadSubscriptions } = await import('./subscriptionStore.js');
   const statements = loadStatements();
   const subs       = loadSubscriptions();
   const stmtMap    = {};
@@ -260,9 +260,7 @@ function toCSV(rows) {
 }
 
 export async function exportCSV(accounts, members) {
-  const { zipSync, strToU8 }  = await import('fflate');
-  const { loadStatements }    = await import('./statementStore.js');
-  const { loadSubscriptions } = await import('./subscriptionStore.js');
+  const { zipSync, strToU8 } = await import('fflate');
   const statements   = loadStatements();
   const subs         = loadSubscriptions();
   const stmtMap      = {};
