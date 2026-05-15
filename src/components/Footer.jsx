@@ -12,7 +12,7 @@ export default function Footer({ onAbout }) {
           All data stored locally · never leaves this device
         </div>
         <div style={{ fontSize: 11, color: 'var(--text-faint)' }}>
-          Built in India for the world 💚
+          Built in India 💚 for the world 
         </div>
         <div style={{ fontSize: 11, color: 'var(--text-faint)', opacity: 0.6, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
           <span>© {new Date().getFullYear()} Coffer · v0.1</span>
